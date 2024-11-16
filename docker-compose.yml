@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # Laravel PHP-FPM Service
+  app:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: app-1
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    networks:
+      - laravel
+    environment:
+      - APP_URL=${APP_URL}
+      - APP_ENV=${APP_ENV}
+      - DB_HOST=${MYSQL_HOST}
+      - DB_DATABASE=${MYSQL_DATABASE}
+      - DB_USERNAME=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - DB_PORT=${MYSQL_PORT}
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=rabbitmq
+
+  nginx:
+    image: nginx:latest
+    container_name: app-backend-1
+    working_dir: /app
+    volumes:
+      - ./app:/app
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    networks:
+      - laravel
+    depends_on:
+      - app
+
+  # MySQL Service
+  db:
+    image: mysql:8.0
+    container_name: ${MYSQL_HOST}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - laravel
+
+  adminer:
+    image: adminer
+    container_name: adminer-1
+    ports:
+      - "8081:8080"
+    networks:
+      - laravel
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: redis-1
+    networks:
+      - laravel
+
+  # RabbitMQ Service
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - laravel
+
+  conversion_service:
+    build:
+      context: ./services/conversion
+    container_name: conversion_service
+    volumes:
+      - ./services/conversion:/app
+      - ./app/storage/app/uploads:/app/storage
+    depends_on:
+      - rabbitmq
+      - app
+    networks:
+      - laravel
+
+networks:
+  laravel:
