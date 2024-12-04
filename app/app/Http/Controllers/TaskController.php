@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\FileUploadHelper;
+use App\Helpers\PrepareDataHelper;
 use App\Jobs\ProcessTaskJob;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
@@ -17,10 +19,10 @@ class TaskController extends Controller
         $oTask->setAttribute('uuid', $taskId);
         $oTask->save();
 
-        return $taskId;
+        return $oTask;
     }
 
-    public function start(Request $request): string
+    public function start(Request $request)
     {
         $request->validate([
             'payload' => 'required|array',
@@ -28,12 +30,14 @@ class TaskController extends Controller
             'type' => 'required|string',
         ]);
 
-        $taskId = $request->input('task');
-        $oTask = Task::where('uuid', $taskId)->firstOrFail();
+        $taskUuid = $request->input('task');
+        $oTask = Task::getByUuid($taskUuid);
 
         $taskId = $oTask->id;
         $type = $request->input('type');
         $payload = $request->input('payload');
+
+        $payload = PrepareDataHelper::prepareDataToSave($payload, $taskUuid, $type, $oTask->payload);
 
         $oTask->fill([
             'status' => 'pending',
@@ -50,8 +54,6 @@ class TaskController extends Controller
 
     public function get($task_id)
     {
-        $task = Task::where('uuid', $task_id)->select(['id', 'uuid', 'status', 'type', 'payload'])->firstOrFail();
-
-        return $task;
+        return Task::getByUuid($task_id);
     }
 }

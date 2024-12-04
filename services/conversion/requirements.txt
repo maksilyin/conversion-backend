@@ -1,2 +1,4 @@
 pika
 pillow
+wand
+python-magic

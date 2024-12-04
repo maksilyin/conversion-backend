@@ -8,10 +8,11 @@ class FileUploadHelper
 {
     const FILE_STATUS_CREATED = 0;
     const FILE_STATUS_LOADING = 1;
-    const FILE_STATUS_UPLOADED = 2;
-    const FILE_STATUS_ERROR = 3;
-    const FILE_STATUS_DELETE = 4;
-    const FILE_STATUS_COMPLETED = 5;
+    const FILE_STATUS_ERROR = 2;
+    const FILE_STATUS_DELETE = 3;
+    const FILE_STATUS_UPLOADED = 4;
+    const FILE_STATUS_PROCESSING = 5;
+    const FILE_STATUS_COMPLETED = 6;
 
     public static function getTmpDir($uuid): string
     {
@@ -38,15 +39,58 @@ class FileUploadHelper
         return self::getDir($uuid) . self::getFileName($hash, $filename);
     }
 
-    public static function getFileMimeType($filePath)
+    public static function getFileInfo($filePath): array
     {
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mimeType = $finfo->file($filePath);
-        $extensionFromPath = pathinfo($filePath, PATHINFO_EXTENSION);
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
 
         return [
             'mimetype' => $mimeType,
-            'extension' => $extensionFromPath,
+            'extension' => $extension,
+            'size' => filesize($filePath)
         ];
+    }
+
+    public static function isFileExists($uuid, $hash, $filename): bool
+    {
+        $path = self::getFilePathOriginal($uuid, $hash, $filename);
+        return file_exists($path);
+    }
+
+    public static function getFile($uuid, $filename): false|string
+    {
+        $dir = self::getDir($uuid);
+
+        if (file_exists($dir . $filename)) {
+            return $dir . $filename;
+        }
+
+        return false;
+    }
+
+    public static function getOriginalName($filename) {
+        if (preg_match('/.+?_(.+)/', $filename, $matches)) {
+            $filename = $matches[1];
+        }
+
+        return $filename;
+    }
+
+    public static function getFileArray($uuid, $filename): false|array
+    {
+        if ($filePath = self::getFile($uuid, $filename)) {
+            $fileInfo = self::getFileInfo($filePath);
+            $originalName = self::getOriginalName($filename);
+
+            return [
+                'src' => $filePath,
+                'filename' => $filename,
+                'originalName' => $originalName,
+                ...$fileInfo
+            ];
+        }
+
+        return false;
     }
 }

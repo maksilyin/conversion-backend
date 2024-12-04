@@ -17,7 +17,7 @@ class CustomRabbitMQJob extends BaseJob
         $payload = $this->payload();
 
         if (isset($payload['service'])) {
-            $requiredKeys = ['task', 'type', 'status'];
+            $requiredKeys = ['task', 'type', 'result'];
 
             foreach ($requiredKeys as $key) {
                 if (!array_key_exists($key, $payload)) {

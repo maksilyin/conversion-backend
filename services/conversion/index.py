@@ -2,26 +2,10 @@ import pika
 import json
 from PIL import Image
 import os
+from FileConverter import FileConverter
 
 
-def convert_image(file_path, target_format):
-    target_format = target_format.lower().lstrip('.')
-
-    try:
-        img = Image.open(file_path)
-        base, _ = os.path.splitext(file_path)
-        new_file_path = f"{base}.{target_format}"
-
-        img.save(new_file_path)
-
-        filename = os.path.basename(new_file_path)
-        return filename
-    except Exception as e:
-        print(f"Error converting file {file_path} to {target_format}: {e}")
-        return False
-
-
-def send_response(task, hash, filename, status, payload):
+def send_response(task, hash, result, payload):
     print('send_response')
     connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
     channel = connection.channel()
@@ -30,8 +14,7 @@ def send_response(task, hash, filename, status, payload):
     response_data = {
         'task': task,
         'hash': hash,
-        'filename': filename,
-        'status': status,
+        'result': result,
         'service': 'convert',
         'type': 'file',
         'index': payload['index'],
@@ -46,20 +29,23 @@ def send_response(task, hash, filename, status, payload):
 
 
 def process_conversion_task(task_data):
-    if not all(key in task_data for key in ['task_id', 'file_path', 'target_format', 'hash']):
+    if not all(key in task_data for key in ['task_id', 'file_path', 'output_format', 'hash']):
         print("Error: Missing required keys in task_data:", task_data)
         return
     file_path = task_data['file_path']
-    target_format = task_data['target_format']
+    output_format = task_data['output_format']
 
-    filename = convert_image(file_path, target_format)
-    status = bool(filename)
-    send_response(task_data['task_id'], task_data['hash'], filename, status, task_data)
+    converter = FileConverter(file_path, output_format)
+    result = converter.convert()
+
+    #filename = convert_image(file_path, output_format)
+
+    send_response(task_data['task_id'], task_data['hash'], result, task_data)
 
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
 channel = connection.channel()
-channel.queue_declare(queue='convert')
+channel.queue_declare(queue='convert', durable=True)
 
 
 def callback(ch, method, properties, body):

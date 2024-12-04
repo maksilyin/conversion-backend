@@ -6,6 +6,7 @@ use App\Factories\TaskServiceFactory;
 use App\Helpers\FileUploadHelper;
 use App\Models\Task;
 use App\Services\TaskContext;
+use App\Services\TaskService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -14,6 +15,7 @@ class ProcessTaskJob implements ShouldQueue
     use Queueable;
 
     private Task $task;
+    private TaskService $taskService;
     private $uuid;
 
     /**
@@ -22,6 +24,7 @@ class ProcessTaskJob implements ShouldQueue
     public function __construct($taskId)
     {
         $this->task = Task::where('id', $taskId)->firstOrFail();
+        $this->taskService = new TaskService($this->task);
         $this->uuid = $this->task->uuid;
     }
 
@@ -35,7 +38,7 @@ class ProcessTaskJob implements ShouldQueue
 
         $payload = $this->prepareData($this->task->payload);
 
-        $taskContext->execute($payload);
+        $taskContext->execute($payload, $this->taskService);
     }
 
     private function prepareData(array $payload): array

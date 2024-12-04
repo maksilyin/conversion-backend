@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\TaskUpdated;
 use App\Helpers\FileUploadHelper;
 use App\Models\Task;
 use App\Services\TaskService;
@@ -15,6 +16,7 @@ class ProcessServiceResponseJob implements ShouldQueue
 {
     use Queueable, InteractsWithQueue, SerializesModels;
     private $payload;
+    private $task;
     private TaskService $taskService;
     /**
      * Create a new job instance.
@@ -22,8 +24,8 @@ class ProcessServiceResponseJob implements ShouldQueue
     public function __construct($taskId, $payload)
     {
         $this->payload = $payload;
-        $task = Task::find($taskId);
-        $this->taskService = new TaskService($task);
+        $this->task = Task::find($taskId);
+        $this->taskService = new TaskService($this->task);
     }
 
     /**
@@ -37,19 +39,25 @@ class ProcessServiceResponseJob implements ShouldQueue
         }
 
         if ($this->payload['type'] === 'file') {
-            $status = FileUploadHelper::FILE_STATUS_COMPLETED;
 
-            $result = [
-                'filename' => $this->payload['filename'],
-            ];
+            $serviceResult = $this->payload['result'];
 
-            if (!$this->payload['status']) {
+            if ($serviceResult['status']) {
+                $status = FileUploadHelper::FILE_STATUS_COMPLETED;
+
+                if ($fileArray = FileUploadHelper::getFileArray($this->task->uuid, $serviceResult['filename'])) {
+                    unset($fileArray['src']);
+                }
+                $result = $fileArray;
+            }
+            else {
                 $status = FileUploadHelper::FILE_STATUS_ERROR;
+                $result = $serviceResult;
             }
 
             $this->taskService->updateFileStatus($this->payload['hash'], $status, $result);
 
-            if ($this->payload['index'] === $this->payload['total']) {
+            if ($this->payload['index'] === $this->payload['total'] - 1) {
                 $this->taskService->setComplete();
             }
         }
