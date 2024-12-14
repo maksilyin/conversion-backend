@@ -2,30 +2,28 @@
 
 namespace App\Jobs;
 
-use App\Events\TaskUpdated;
 use App\Helpers\FileUploadHelper;
 use App\Models\Task;
-use App\Services\TaskService;
+use App\Services\TaskManager;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
 class ProcessServiceResponseJob implements ShouldQueue
 {
     use Queueable, InteractsWithQueue, SerializesModels;
     private $payload;
     private $task;
-    private TaskService $taskService;
+    private TaskManager $taskManager;
     /**
      * Create a new job instance.
      */
     public function __construct($taskId, $payload)
     {
         $this->payload = $payload;
-        $this->task = Task::find($taskId);
-        $this->taskService = new TaskService($this->task);
+        $this->task = Task::getByUuid($taskId);
+        $this->taskManager = new TaskManager($this->task);
     }
 
     /**
@@ -33,11 +31,6 @@ class ProcessServiceResponseJob implements ShouldQueue
      */
     public function handle(): void
     {
-        if (!$this->taskService->hasTask()) {
-            Log::info('Task not found', $this->payload);
-            return;
-        }
-
         if ($this->payload['type'] === 'file') {
 
             $serviceResult = $this->payload['result'];
@@ -45,7 +38,9 @@ class ProcessServiceResponseJob implements ShouldQueue
             if ($serviceResult['status']) {
                 $status = FileUploadHelper::FILE_STATUS_COMPLETED;
 
-                if ($fileArray = FileUploadHelper::getFileArray($this->task->uuid, $serviceResult['filename'])) {
+                $filePath = FileUploadHelper::getFileFromService($this->task->uuid, $serviceResult['output']);
+
+                if ($filePath && $fileArray = FileUploadHelper::getFileArray($this->task->uuid, $filePath)) {
                     unset($fileArray['src']);
                 }
                 $result = $fileArray;
@@ -55,10 +50,10 @@ class ProcessServiceResponseJob implements ShouldQueue
                 $result = $serviceResult;
             }
 
-            $this->taskService->updateFileStatus($this->payload['hash'], $status, $result);
+            $this->taskManager->updateFileStatus($this->payload['hash'], $status, $result);
 
             if ($this->payload['index'] === $this->payload['total'] - 1) {
-                $this->taskService->setComplete();
+                $this->taskManager->setComplete();
             }
         }
     }

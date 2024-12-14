@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Helpers\FileUploadHelper;
 use App\Models\Task;
+use App\Services\TaskManager;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,6 +45,8 @@ class FileUploadController extends Controller
         if ($chunkIndex === $total) {
             $outputFile = $this->completeUpload($fileIdentifier, $task, $request->input('filename'));
             $fileInfo = FileUploadHelper::getFileInfo($outputFile);
+
+            Cache::forget("uploaded_size_{$fileIdentifier}");
         }
 
         return response()->json([
@@ -100,25 +104,15 @@ class FileUploadController extends Controller
         return $finalPath . $originalFileName;
     }
 
-    public function download(Request $request)
+    public function download(Task $task, string $hash)
     {
-        $request->validate([
-            'task' => 'required|uuid',
-            'filename' => 'required|string',
-        ]);
+        $taskManager = new TaskManager($task);
 
-        $task = $request->input('task');
-        $filename = $request->input('filename');
+        $file = $taskManager->getFileResult($hash);
 
-        $fileArray = FileUploadHelper::getFileArray($task, $filename);
-
-        if (!$fileArray) {
-            return response()->json(['error' => 'File not found'], 404);
-        }
-
-        $fileContent = file_get_contents($fileArray['src']);
-        $mimeType = $fileArray['mimetype'];
-        $fileName = $fileArray['originalName'];
+        $fileContent = file_get_contents($file['fullPath']);
+        $mimeType = $file['mimetype'];
+        $fileName = $file['originalName'];
 
         return response($fileContent, 200, [
             'Content-Type' => $mimeType,
@@ -127,18 +121,17 @@ class FileUploadController extends Controller
         ]);
     }
 
-    public function showImg($task, $filename)
+    public function showImg(Task $task, string $hash)
     {
-        if (!$fileArray = FileUploadHelper::getFileArray($task, $filename)) {
-            abort(404);
-        }
-
-        $fileContent = file_get_contents($fileArray['src']);
-        $mimeType = $fileArray['mimetype'];
+        $taskManager = new TaskManager($task);
+        $file = $taskManager->getFileByHash($hash, true);
+        $mimeType = $file['mimetype'];
 
         if (!strpos($mimeType, 'image/') === false) {
-            abort(403);
+            abort(400);
         }
+
+        $fileContent = file_get_contents($file['fullPath']);
 
         return response($fileContent, 200, [
             'Content-Type' => $mimeType,
@@ -146,54 +139,42 @@ class FileUploadController extends Controller
             'Content-Length' => strlen($fileContent),
         ]);
     }
-
-    /**
-     * @throws Exception
-     */
-    public function downloadZip(Request $request)
+    public function downloadZip(Task $task)
     {
-        $request->validate([
-            'task' => 'required|uuid',
-        ]);
+        $taskManager = new TaskManager($task);
 
-        $task = $request->input('task');
-        $oTask = Task::getByUuid($task);
+        $files = $taskManager->getFileResultList();
 
-        if (!$oTask || $oTask->status !== 'complete') {
-            abort(400);
+        if (empty($files)) {
+            abort(400, 'No files available for download.');
         }
 
-        $payload = $oTask->payload;
-        $arFiles = [];
-
-        foreach ($payload['files'] as $file) {
-            if ($file['status'] === FileUploadHelper::FILE_STATUS_COMPLETED) {
-                if ($filePath = FileUploadHelper::getFile($task, $file['result']['filename'])) {
-                    $arFiles[] = $filePath;
-                }
-            }
-        }
-
-        if (!file_exists(storage_path('app/temp'))) {
-            mkdir(storage_path('app/temp'), 0755, true);
-        }
-
-        $zipPath = storage_path('app/temp/'.$task.'.zip');
-        $zip = new \ZipArchive();
-
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
-            foreach ($arFiles as $file) {
-                if (file_exists($file)) {
-                    $zip->addFile($file, FileUploadHelper::getOriginalName(basename($file)));
-                }
-            }
-
-            $zip->close();
-        }
-        else {
-            throw new Exception("Не удалось создать архив");
-        }
+        $zipPath = $this->createZip($task->uuid, $files);
 
         return Response::download($zipPath)->deleteFileAfterSend(true);
+    }
+
+    protected function createZip(string $uuid, array $files): string
+    {
+        $tempDir = storage_path('app/temp');
+        $zipPath = $tempDir . '/' . $uuid . '.zip';
+
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $zip = new \ZipArchive();
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            throw new Exception("Failed to create ZIP archive.");
+        }
+
+        foreach ($files as $file) {
+            $zip->addFile($file['fullPath'], $file['originalName']);
+        }
+
+        $zip->close();
+
+        return $zipPath;
     }
 }

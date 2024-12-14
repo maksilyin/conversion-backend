@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\FileUploadHelper;
-use App\Helpers\PrepareDataHelper;
+use App\Factories\TaskServiceFactory;
 use App\Jobs\ProcessTaskJob;
 use App\Models\Task;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class TaskController extends Controller
 {
+    private TaskServiceFactory $taskServiceFactory;
+
+    public function __construct(TaskServiceFactory $taskFactory)
+    {
+        $this->taskServiceFactory = $taskFactory;
+    }
     public function create(): string
     {
         $taskId = (string) Str::uuid();
@@ -25,24 +29,29 @@ class TaskController extends Controller
     public function start(Request $request)
     {
         $request->validate([
-            'payload' => 'required|array',
             'task' => 'required|uuid',
             'type' => 'required|string',
+        ]);
+
+        $taskType = $request->input('type');
+        $taskValidator = $this->taskServiceFactory->createValidator($taskType);
+
+        $request->validate([
+            'payload' => ['required', 'array', $taskValidator],
         ]);
 
         $taskUuid = $request->input('task');
         $oTask = Task::getByUuid($taskUuid);
 
         $taskId = $oTask->id;
-        $type = $request->input('type');
         $payload = $request->input('payload');
 
-        $payload = PrepareDataHelper::prepareDataToSave($payload, $taskUuid, $type, $oTask->payload);
+        $payload = $this->taskServiceFactory->createAdapter($taskType)->filter($taskUuid, $payload);
 
         $oTask->fill([
             'status' => 'pending',
             'payload' => $payload,
-            'type' => $type,
+            'type' => $taskType,
         ]);
 
         $oTask->save();

@@ -25,6 +25,7 @@ class FileCategoryResource extends JsonResource
                 return [
                     'id' => $format->id,
                     'name' => $format->name,
+                    'extended_name' => $format->extended_name,
                     'extension' => $format->extension,
                     'icon' => $format->icon,
                     'icon_image' => $format->icon_image,

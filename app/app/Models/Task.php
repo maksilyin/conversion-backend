@@ -15,6 +15,11 @@ class Task extends Model
     protected $fillable = ['uuid', 'user_id', 'type', 'status', 'payload'];
     protected $hidden = ['created_at', 'updated_at', 'user_id'];
 
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
     protected $casts = [
         'payload' => 'array',
     ];

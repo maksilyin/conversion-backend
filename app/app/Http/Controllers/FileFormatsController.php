@@ -15,7 +15,7 @@ class FileFormatsController extends Controller
         $fileCategories = FileCategory::select('id', 'name', 'slug', 'icon', 'icon_image')
             ->with([
                 'translations',
-                'formats:id,name,extension,category_id,icon,icon_image,mime_type',
+                'formats:id,name,extension,category_id,icon,icon_image,mime_type,extended_name',
                 'formats.convertible:id,name,extension',
                 'formats.convertibleCategory:id,slug',
             ])
@@ -40,7 +40,7 @@ class FileFormatsController extends Controller
             ->where('slug', $type)
             ->with([
                 'translations',
-                'formats:id,name,extension,category_id,icon,icon_image,mime_type',
+                'formats:id,name,extension,category_id,icon,icon_image,mime_type,extended_name',
                 'formats.convertible:id,name,extension',
                 'formats.convertibleCategory:id,slug',
             ])

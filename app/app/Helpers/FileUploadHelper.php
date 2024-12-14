@@ -69,6 +69,18 @@ class FileUploadHelper
         return false;
     }
 
+    public static function getFileFromService($uuid, $output): false|string
+    {
+        $filePath = str_replace('storage/complete/'.$uuid.'/', '', $output);
+        $dir = self::getDir($uuid);
+
+        if (file_exists($dir . $filePath)) {
+            return $filePath;
+        }
+
+        return $filePath;
+    }
+
     public static function getOriginalName($filename) {
         if (preg_match('/.+?_(.+)/', $filename, $matches)) {
             $filename = $matches[1];

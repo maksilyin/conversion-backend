@@ -4,11 +4,19 @@ namespace App\Services;
 
 use App\Helpers\FileUploadHelper;
 use App\Models\Task;
+use App\Repositories\TaskFileRepository;
+use Exception;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\DB;
+use phpseclib3\File\ASN1\Maps\Extension;
 
-class TaskService
+class TaskManager
 {
-    public ?Task $task = null;
+    const STATUS_COMPLETE = 'complete';
+    const STATUS_PENDING = 'pending';
+    private ?Task $task = null;
+    private $payload = [];
+    private TaskFileRepository $taskFileRepository;
 
     public function __construct(Task $task = null, $taskUuid = false)
     {
@@ -23,6 +31,12 @@ class TaskService
         else if ($taskUuid) {
             $this->task = Task::getByUuid($taskUuid);
         }
+
+        if (!$this->task) {
+            throw new Exception("Task not found");
+        }
+        $this->payload = $this->task->payload;
+        $this->taskFileRepository = new TaskFileRepository($task);
     }
 
     public function hasTask(): bool
@@ -32,8 +46,18 @@ class TaskService
 
     public function setComplete(): void
     {
-        $this->task->status = 'complete';
+        $this->task->status = self::STATUS_COMPLETE;
         $this->task->save();
+    }
+
+    public function getId()
+    {
+        return $this->task->id;
+    }
+
+    public function getUuid()
+    {
+        return $this->task->uuid;
     }
 
     public function setFileStatusProcessing($hash): void
@@ -63,5 +87,30 @@ class TaskService
                 }
             }
         });
+    }
+
+    public function isTaskCompleted(): bool
+    {
+        return $this->task->status === self::STATUS_COMPLETE;
+    }
+
+    public function getFileByHash(string $hash, bool $withPath = false): ?array
+    {
+        return $this->taskFileRepository->getFileByHash($hash, $withPath);
+    }
+
+    public function getFileResult(string $hash)
+    {
+        return $this->taskFileRepository->getFileResult($hash);
+    }
+
+    public function getFileResultList(): array
+    {
+        return $this->taskFileRepository->getFileResultList();
+    }
+
+    public function getPathForService(string $hash): string
+    {
+        return $this->taskFileRepository->getPathForService($hash);
     }
 }

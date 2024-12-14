@@ -29,13 +29,13 @@ class FileConverter:
 
             # Select the appropriate method for conversion
             if mime_type.startswith('image/'):
-                file_name = self._convert_image()
+                output_path = self._convert_image()
             elif mime_type == 'application/pdf':
-                file_name = self._convert_pdf()
+                output_path = self._convert_pdf()
             else:
                 return {"status": False, "error": f"File type {mime_type} is not supported."}
 
-            return {"status": True, "filename": file_name, "error": None}
+            return {"status": True, "filename": os.path.basename(output_path), "output": output_path, "error": None}
 
         except Exception as e:
             return {"status": False, "error": str(e)}
@@ -49,7 +49,7 @@ class FileConverter:
             img.format = self.output_format
             output_path = self._get_output_path()
             img.save(filename=output_path)
-            return os.path.basename(output_path)
+            return output_path
 
     def _convert_pdf(self) -> str:
         """
@@ -60,11 +60,19 @@ class FileConverter:
             pdf.format = self.output_format
             output_path = self._get_output_path()
             pdf.save(filename=output_path)
-            return os.path.basename(output_path)
+            return output_path
 
     def _get_output_path(self) -> str:
-        """
-        Creates a path for saving the file based on the output format.
-        """
-        base, _ = os.path.splitext(self.file_path)
-        return f"{base}_converted.{self.output_format}"
+            """
+            Creates a path for saving the file in the 'result' subfolder.
+            """
+            # Define the result directory
+            result_dir = os.path.join(os.path.dirname(self.file_path), "result")
+
+            # Create the result directory if it doesn't exist
+            if not os.path.exists(result_dir):
+                os.makedirs(result_dir)
+
+            # Generate the output file path
+            base_name = os.path.splitext(os.path.basename(self.file_path))[0]
+            return os.path.join(result_dir, f"{base_name}.{self.output_format}")

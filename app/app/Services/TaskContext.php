@@ -13,8 +13,8 @@ class TaskContext
         $this->service = $strategy;
     }
 
-    public function execute(array $payload, TaskService $taskService = null)
+    public function execute(array $payload, TaskManager $taskManager = null)
     {
-        return $this->service->execute($payload, $taskService);
+        return $this->service->execute($payload, $taskManager);
     }
 }

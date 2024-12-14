@@ -2,9 +2,9 @@
 
 namespace App\Contracts;
 
-use App\Services\TaskService;
+use App\Services\TaskManager;
 
 interface TaskContract
 {
-    public function execute(array $payload, TaskService $taskService = null);
+    public function execute(array $payload, TaskManager $taskManager);
 }

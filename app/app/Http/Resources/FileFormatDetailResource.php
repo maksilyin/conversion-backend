@@ -17,6 +17,7 @@ class FileFormatDetailResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'extended_name' => $this->extended_name,
             'extension' => $this->extension,
             'icon' => $this->icon,
             'icon_image' => $this->icon_image,

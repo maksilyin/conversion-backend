@@ -6,13 +6,16 @@ use App\Http\Controllers\TaskController;
 use App\Http\Middleware\CheckFileType;
 use App\Http\Middleware\CheckTask;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\ValidateChunkSize;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('file')->group(function () {
-    Route::post('/upload/', [FileUploadController::class, 'uploadChunk'])->middleware(CheckFileType::class);
+    Route::post('/upload/', [FileUploadController::class, 'uploadChunk'])
+        ->middleware([CheckFileType::class, ValidateChunkSize::class]);
     Route::delete('/delete/', [FileUploadController::class, 'deleteFile']);
-    Route::get('/download/', [FileUploadController::class, 'download']);
-    Route::get('/download/all/', [FileUploadController::class, 'downloadZip']);
+
+    Route::get('/download/{task}/all/', [FileUploadController::class, 'downloadZip']);
+    Route::get('/download/{task}/{hash}/', [FileUploadController::class, 'download']);
     Route::get('/img/{task}/{filename}', [FileUploadController::class, 'showImg']);
 })->middleware(CheckTask::class);
 

@@ -8,3 +8,4 @@ php artisan queue:work
 php artisan queue:work --queue=service_messages
 
 php artisan make:controller ControllerName
+php artisan make:test TestName --unit
