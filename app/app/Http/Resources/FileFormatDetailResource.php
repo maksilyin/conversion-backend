@@ -23,6 +23,7 @@ class FileFormatDetailResource extends JsonResource
             'icon_image' => $this->icon_image,
             'excerpt' => $this->getTranslate('excerpt'),
             'description' => $this->getTranslate('description'),
+            'color' => $this->color,
             'mime_type' => $this->mime_type,
             'type' => $this->category ? [
                 'id' => $this->category->id,

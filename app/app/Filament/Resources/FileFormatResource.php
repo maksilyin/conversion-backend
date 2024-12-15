@@ -52,6 +52,7 @@ class FileFormatResource extends Resource
                                     ->relationship('category', 'name')
                                     ->preload()
                                     ->label('File type'),
+                                TextInput::make('color'),
                                 TextInput::make('mime_type'),
                                 FileUpload::make('icon_image')
                                     ->image(),
@@ -149,6 +150,7 @@ class FileFormatResource extends Resource
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('sort')->sortable(),
                 TextColumn::make('extension')->sortable()->searchable(),
+                TextColumn::make('color')->sortable()->searchable(),
                 TextColumn::make('mime_type')->sortable()->searchable(),
                 TextColumn::make('category.name')->label('Type'),
                 IconColumn::make('active')
