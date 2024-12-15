@@ -29,7 +29,7 @@ class FileCategoryResource extends JsonResource
                     'extension' => $format->extension,
                     'icon' => $format->icon,
                     'icon_image' => $format->icon_image,
-                    'color' => $this->color,
+                    'color' => $format->color,
                     'mime_type' => $format->mime_type,
                     'convertible' => $format->convertible->map(function ($convertible) {
                         return [

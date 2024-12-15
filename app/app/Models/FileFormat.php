@@ -15,7 +15,7 @@ class FileFormat extends Model
     use HasTranslatable;
     use HasSEO;
 
-    protected $fillable = ['name', 'extended_name', 'sort', 'category_id', 'extension', 'mime_type', 'excerpt', 'description', 'icon_image', 'icon', 'active'];
+    protected $fillable = ['name', 'extended_name', 'sort', 'category_id', 'extension', 'mime_type', 'excerpt', 'description', 'icon_image', 'icon', 'active', 'color'];
 
     public function convertible(): BelongsToMany
     {
