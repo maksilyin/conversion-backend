@@ -25,7 +25,7 @@ class CustomRabbitMQJob extends BaseJob
                     throw new \Exception("Key '{$key}' is missing in the payload. Service: " . $payload['service']);
                 }
             }
-
+            var_dump($payload['result']['extension']);
             $class = ProcessServiceResponseJob::class;
             $method = 'handle';
 

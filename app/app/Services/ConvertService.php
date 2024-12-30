@@ -17,18 +17,23 @@ class ConvertService implements TaskContract
 
         foreach ($payload['files'] as $index => $file) {
             $allFilesSkipped = false;
-            $data = [
-                'task_id' => $payload['task_id'],
-                'hash' => $file['hash'],
-                'file_path' => $file['service_path'],
-                'output_format' => current($file['params']['convert']),
-                'index' => $index,
-                'total' => count($payload['files']),
-            ];
-
             $taskManager->setFileStatusProcessing($file['hash']);
 
-            Queue::pushRaw(json_encode($data), 'convert');
+            foreach ($file['params']['convert'] as $formatIndex => $outputFormat) {
+                echo "formatIndex: ".$formatIndex.', outputFormat:'.$outputFormat.' ; <br>';
+                $data = [
+                    'task_id' => $payload['task_id'],
+                    'hash' => $file['hash'],
+                    'file_path' => $file['service_path'],
+                    'file_type' => $file['file_type'],
+                    'output_format' => $outputFormat,
+                    'index' => $index,
+                    'total' => count($payload['files']),
+                    'formatIndex' => $formatIndex
+                ];
+
+                Queue::pushRaw(json_encode($data), 'convert');
+            }
         }
         if ($allFilesSkipped && $taskManager) {
             $taskManager->setComplete();

@@ -34,26 +34,35 @@ class ProcessServiceResponseJob implements ShouldQueue
         if ($this->payload['type'] === 'file') {
 
             $serviceResult = $this->payload['result'];
-
+            var_dump('ProcessServiceResponseJob '.$serviceResult['extension']);
             if ($serviceResult['status']) {
+                var_dump('status '.$serviceResult['extension']);
                 $status = FileUploadHelper::FILE_STATUS_COMPLETED;
-
+                var_dump('getFileFromService '.$serviceResult['extension']);
+                var_dump('getFileFromService '.$serviceResult['output']);
                 $filePath = FileUploadHelper::getFileFromService($this->task->uuid, $serviceResult['output']);
+                var_dump('$filePath '.$filePath.' '.$serviceResult['extension']);
 
+                var_dump('getFileArray '.$serviceResult['extension']);
                 if ($filePath && $fileArray = FileUploadHelper::getFileArray($this->task->uuid, $filePath)) {
                     unset($fileArray['src']);
                 }
-                $result = $fileArray;
+                $result = [
+                    ...$fileArray,
+                    'status' => $serviceResult['status'],
+                ];
             }
             else {
+                var_dump('no status '.$serviceResult['extension']);
                 $status = FileUploadHelper::FILE_STATUS_ERROR;
                 $result = $serviceResult;
             }
-
+            var_dump('start updateFileStatus '.$serviceResult['extension']);
             $this->taskManager->updateFileStatus($this->payload['hash'], $status, $result);
+            var_dump('stop updateFileStatus '.$serviceResult['extension']);
 
             if ($this->payload['index'] === $this->payload['total'] - 1) {
-                $this->taskManager->setComplete();
+                //$this->taskManager->setComplete();
             }
         }
     }

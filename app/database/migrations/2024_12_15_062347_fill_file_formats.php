@@ -77,7 +77,6 @@ return new class extends Migration
         ['name' => 'WAV', 'extension' => 'wav', 'extended_name' => 'Waveform Audio File Format', 'mime_type' => 'audio/wav', 'color' => '#2196F3', 'category' => 'audio'],
         ['name' => 'OGG', 'extension' => 'ogg', 'extended_name' => 'Ogg Vorbis Audio', 'mime_type' => 'audio/ogg', 'color' => '#4CAF50', 'category' => 'audio'],
         ['name' => 'FLAC', 'extension' => 'flac', 'extended_name' => 'Free Lossless Audio Codec', 'mime_type' => 'audio/flac', 'color' => '#8D6E63', 'category' => 'audio'],
-        ['name' => 'AAC', 'extension' => 'aac', 'extended_name' => 'Advanced Audio Codec', 'mime_type' => 'audio/aac', 'color' => '#FF5722', 'category' => 'audio'],
         ['name' => 'AIFF', 'extension' => 'aiff', 'extended_name' => 'Audio Interchange File Format', 'mime_type' => 'audio/aiff', 'color' => '#FF7043', 'category' => 'audio'],
         ['name' => 'M4A', 'extension' => 'm4a', 'extended_name' => 'MPEG-4 Audio', 'mime_type' => 'audio/mp4', 'color' => '#E53935', 'category' => 'audio'],
         ['name' => 'ZIP', 'extension' => 'zip', 'extended_name' => 'ZIP Archive', 'mime_type' => 'application/zip', 'color' => '#FFEB3B', 'category' => 'archive'],
@@ -89,6 +88,29 @@ return new class extends Migration
         ['name' => 'OTF', 'extension' => 'otf', 'extended_name' => 'OpenType Font', 'mime_type' => 'font/otf', 'color' => '#512DA8', 'category' => 'font'],
         ['name' => 'WOFF', 'extension' => 'woff', 'extended_name' => 'Web Open Font Format', 'mime_type' => 'font/woff', 'color' => '#3F51B5', 'category' => 'font'],
         ['name' => 'WOFF2', 'extension' => 'woff2', 'extended_name' => 'Web Open Font Format 2', 'mime_type' => 'font/woff2', 'color' => '#303F9F', 'category' => 'font'],
+
+        ['name' => 'AAC', 'extension' => 'aac', 'extended_name' => 'Advanced Audio Codec', 'mime_type' => 'audio/aac', 'color' => '#FFC107', 'category' => 'audio'],
+        ['name' => 'MP3', 'extension' => 'mp3', 'extended_name' => 'MPEG Audio Layer III', 'mime_type' => 'audio/mpeg', 'color' => '#4CAF50', 'category' => 'audio'],
+        ['name' => 'WAV', 'extension' => 'wav', 'extended_name' => 'Waveform Audio File Format', 'mime_type' => 'audio/wav', 'color' => '#2196F3', 'category' => 'audio'],
+        ['name' => 'OGG', 'extension' => 'ogg', 'extended_name' => 'Ogg Vorbis Audio', 'mime_type' => 'audio/ogg', 'color' => '#FF9800', 'category' => 'audio'],
+        ['name' => 'Vorbis', 'extension' => 'vorbis', 'extended_name' => 'Vorbis Audio', 'mime_type' => 'audio/vorbis', 'color' => '#9C27B0', 'category' => 'audio'],
+        ['name' => 'WebM Audio', 'extension' => 'webm', 'extended_name' => 'WebM Audio', 'mime_type' => 'audio/webm', 'color' => '#03A9F4', 'category' => 'audio'],
+        ['name' => 'FLAC', 'extension' => 'flac', 'extended_name' => 'Free Lossless Audio Codec', 'mime_type' => 'audio/flac', 'color' => '#607D8B', 'category' => 'audio'],
+        ['name' => 'MP4 Audio', 'extension' => 'mp4', 'extended_name' => 'MPEG-4 Audio', 'mime_type' => 'audio/mp4', 'color' => '#F44336', 'category' => 'audio'],
+        ['name' => 'M4A', 'extension' => 'm4a', 'extended_name' => 'MPEG-4 Audio', 'mime_type' => 'audio/x-m4a', 'color' => '#9E9E9E', 'category' => 'audio'],
+        ['name' => 'Opus', 'extension' => 'opus', 'extended_name' => 'Opus Audio Codec', 'mime_type' => 'audio/opus', 'color' => '#4CAF50', 'category' => 'audio'],
+        ['name' => '3GPP Audio', 'extension' => '3gp', 'extended_name' => '3GPP Audio', 'mime_type' => 'audio/3gpp', 'color' => '#E91E63', 'category' => 'audio'],
+        ['name' => '3GPP2 Audio', 'extension' => '3gpp2', 'extended_name' => '3GPP2 Audio', 'mime_type' => 'audio/3gpp2', 'color' => '#673AB7', 'category' => 'audio'],
+        ['name' => 'RealAudio', 'extension' => 'ra', 'extended_name' => 'RealAudio Format', 'mime_type' => 'audio/x-realaudio', 'color' => '#009688', 'category' => 'audio'],
+        ['name' => 'AIFF', 'extension' => 'aiff', 'extended_name' => 'Audio Interchange File Format', 'mime_type' => 'audio/aiff', 'color' => '#FF9800', 'category' => 'audio'],
+        ['name' => 'AMR', 'extension' => 'amr', 'extended_name' => 'Adaptive Multi-Rate Audio Codec', 'mime_type' => 'audio/amr', 'color' => '#CDDC39', 'category' => 'audio'],
+        ['name' => 'AMR (Alternative)', 'extension' => 'amr', 'extended_name' => 'Adaptive Multi-Rate Audio Codec', 'mime_type' => 'audio/x-amr', 'color' => '#FFEB3B', 'category' => 'audio'],
+        ['name' => 'WMA', 'extension' => 'wma', 'extended_name' => 'Windows Media Audio', 'mime_type' => 'audio/x-ms-wma', 'color' => '#03A9F4', 'category' => 'audio'],
+        ['name' => 'MKA', 'extension' => 'mka', 'extended_name' => 'Matroska Audio', 'mime_type' => 'audio/x-matroska', 'color' => '#00BCD4', 'category' => 'audio'],
+        ['name' => 'Basic Audio', 'extension' => 'au', 'extended_name' => 'Basic Audio Format', 'mime_type' => 'audio/basic', 'color' => '#9E9E9E', 'category' => 'audio'],
+        ['name' => 'CAF', 'extension' => 'caf', 'extended_name' => 'Core Audio Format', 'mime_type' => 'audio/x-caf', 'color' => '#F44336', 'category' => 'audio'],
+        ['name' => 'DLNA/ADTS', 'extension' => 'adts', 'extended_name' => 'DLNA/ADTS Audio', 'mime_type' => 'audio/vnd.dlna.adts', 'color' => '#4CAF50', 'category' => 'audio'],
+        ['name' => 'WAVE', 'extension' => 'wav', 'extended_name' => 'Waveform Audio File Format', 'mime_type' => 'audio/vnd.wave', 'color' => '#2196F3', 'category' => 'audio']
     ];
     /**
      * Run the migrations.

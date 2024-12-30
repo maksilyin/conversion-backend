@@ -77,7 +77,10 @@ class TaskManager
                         $file['status'] = $status;
 
                         if ($result) {
-                            $file['result'] = $result;
+                            if (empty($file['result'])) {
+                                $file['result'] = [];
+                            }
+                            $file['result'][] = $result;
                         }
 
                         $this->task->payload = $payload;

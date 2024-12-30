@@ -28,3 +28,6 @@ Route::prefix('task')->group(function () {
 Route::get('/formats/', [FileFormatsController::class, 'formats'])->middleware(SetLocale::class);
 Route::get('/formats/{format}/', [FileFormatsController::class, 'show'])->middleware(SetLocale::class);
 Route::get('/formats/type/{type}/', [FileFormatsController::class, 'fileType'])->middleware(SetLocale::class);
+
+Route::get('/test/', [\App\Http\Controllers\TestFormatController::class, 'test']);
+Route::get('/test/task', [\App\Http\Controllers\TestFormatController::class, 'testTask']);

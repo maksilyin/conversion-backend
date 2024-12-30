@@ -1,8 +1,6 @@
 import pika
 import json
-from PIL import Image
-import os
-from FileConverter import FileConverter
+from classes.FileConverter import FileConverter
 
 
 def send_response(task, hash, result, payload):
@@ -29,13 +27,15 @@ def send_response(task, hash, result, payload):
 
 
 def process_conversion_task(task_data):
-    if not all(key in task_data for key in ['task_id', 'file_path', 'output_format', 'hash']):
+    print(task_data)
+    if not all(key in task_data for key in ['task_id', 'file_path', 'file_type', 'output_format', 'hash']):
         print("Error: Missing required keys in task_data:", task_data)
         return
     file_path = task_data['file_path']
     output_format = task_data['output_format']
+    file_type = task_data['file_type']
 
-    converter = FileConverter(file_path, output_format)
+    converter = FileConverter(file_type, file_path, output_format)
     result = converter.convert()
 
     #filename = convert_image(file_path, output_format)
