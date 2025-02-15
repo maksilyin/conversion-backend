@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install pcntl
 RUN docker-php-ext-install sockets
 
+RUN echo "upload_max_filesize=100M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size=120M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 COPY supervisord.conf /etc/supervisor/conf.d/laravel-worker.conf
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

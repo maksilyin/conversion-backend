@@ -2,15 +2,15 @@ FROM python:3.13.1-bookworm
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    imagemagick \
-    ghostscript \
-    libmagickwand-dev \
-    dcraw \
-    libraw-bin \
-    autoconf \
-    automake \
-    build-essential \
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    echo "deb http://deb.debian.org/debian bookworm main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb http://security.debian.org/debian-security bookworm-security main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb http://deb.debian.org/debian bookworm-updates main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb http://deb.debian.org/debian buster main contrib non-free" >> /etc/apt/sources.list && \
+    apt-get update
+
+RUN apt-get install -y \
     cmake \
     git-core \
     libass-dev \
@@ -26,21 +26,61 @@ RUN apt-get update && apt-get install -y \
     libopus-dev \
     libopencore-amrnb-dev \
     libopencore-amrwb-dev \
+    zlib1g-dev \
+    git \
+    yasm \
+    wget \
+    nasm \
+    libxvidcore-dev \
+    libvorbis-dev \
+    libopus-dev \
+    zlib1g-dev \
+    libvpx-dev \
+    libtheora-dev \
+    libaom-dev
+
+RUN apt-get install -y \
+    inkscape \
+    pstoedit \
+    fig2dev \
+    hp2xx \
+    libwmf-bin \
+    libwmf-dev \
+    vlc \
+    genisoimage \
+    lcab \
+    jlha-utils \
+    arj \
+    cpio \
+    rar \
+    unrar \
+    imagemagick \
+    ghostscript \
+    libmagickwand-dev \
+    dcraw \
+    libraw-bin \
+    autoconf \
+    automake \
+    build-essential
+
+RUN apt-get install -y \
+    calibre \
     pkg-config \
     texinfo \
-    wget \
-    yasm \
-    zlib1g-dev \
-    nasm \
     libreoffice \
-    pandoc \
     tesseract-ocr \
-    build-essential \
-    git \
     poppler-utils \
     xpdf \
     libjpeg-dev \
-    && rm -rf /var/lib/apt/lists/*
+    fontforge \
+    python3-fontforge \
+    p7zip \
+    gnumeric \
+    wkhtmltopdf \
+    pandoc \
+    unar && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /ffmpeg_sources && cd /ffmpeg_sources && \
     git clone https://code.videolan.org/videolan/x264.git && \
@@ -94,16 +134,20 @@ RUN cd /ffmpeg_sources && \
         --enable-libopencore-amrnb \
         --enable-libopencore-amrwb \
         --enable-libmp3lame \
+        --enable-libxvid \
+        --enable-libvpx \
+        --enable-libaom \
+        --enable-libtheora \
         --enable-nonfree && \
     make -j$(nproc) && \
     make install && \
     hash -r && \
     rm -rf /ffmpeg_sources
 
-COPY pdf2htmlEX.deb /tmp/pdf2htmlEX.deb
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+COPY policy.xml /etc/ImageMagick-6/policy.xml
 
 COPY . .
 

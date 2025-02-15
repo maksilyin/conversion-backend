@@ -1,84 +1,56 @@
-import os
-import subprocess
-from os.path import basename
-
-from htmldocx import HtmlToDocx
-from html2docx import html2docx
+import sys
+from pathlib import Path
 from abc import ABC
-
-from bs4 import BeautifulSoup
-
 from classes.ConverterBase import ConverterBase
+from libs.Converter import convert_file
+#from libs.Converter import convert_file
+from libs.calibre_converter import calibre
+from libs.helpers import get_file_type_by_format
+from libs.libreoffice_converter import libreoffice
+from libs.wkhtmltopdf import wkhtmltopdf
+
 
 class DocumentConverter(ConverterBase, ABC):
     def convert(self) -> str:
         output_path = self._get_output_path()
         file_path = self._file_path
-        extension = os.path.splitext(output_path)[1].lstrip('.').lower()
-
+        output_types = get_file_type_by_format(self._output_format)
+        print(output_types)
         try:
-            self.convert_html_to_docx(file_path, output_path)
+            if self.isHtml() and not self._output_format == 'txt':
+                if self._output_format == 'pdf':
+                    wkhtmltopdf(file_path, output_path)
+                elif "image" in output_types:
+                    tmp_pdf = self._create_tmp_dir(build_path=f"{Path(file_path).stem}.pdf")
+                    wkhtmltopdf(file_path, tmp_pdf)
+                    convert_file('pdf', tmp_pdf, output_path)
+                else:
+                    tmp_pdf = self._create_tmp_dir(build_path=f"{Path(file_path).stem}.pdf")
+                    wkhtmltopdf(file_path, tmp_pdf)
+                    calibre(tmp_pdf, output_path)
+                    #convert_file('pdf', tmp_pdf, output_path)
+            elif self.isDocx():
+                if self._output_format == 'doc' or self._output_format == 'pdf':
+                    libreoffice(file_path, output_path, self._output_format)
+                elif self._output_format == 'html' or 'presentation' in output_types or 'image' in output_types or 'spreadsheets' in output_types:
+                    tmp_pdf = self._create_tmp_dir(build_path=f"{Path(file_path).stem}.pdf")
+                    libreoffice(file_path, tmp_pdf, 'pdf')
+                    output_path = convert_file('pdf', tmp_pdf, output_path)
+                else:
+                    calibre(file_path, output_path)
 
+            else:
+                calibre(self._file_path, output_path)
         except Exception as e:
             raise Exception(f"Error converting document: {str(e)}")
+        finally:
+            self._delete_tmp_dir()
 
         return output_path
 
-    def _convert_with_libreoffice(self, file_path: str, output_path: str):
-        """Convert document using LibreOffice."""
-        output_dir = os.path.dirname(output_path)
-        expected_output_file = os.path.join(output_dir, os.path.basename(file_path).rsplit('.', 1)[0] +
-                                            os.path.splitext(output_path)[1])
+    def isHtml(self) -> bool:
+        return self._mime_type == 'text/html'
 
-        try:
-            # Запуск LibreOffice для конвертации
-            result = subprocess.run([
-                "libreoffice", "--headless", "--convert-to", os.path.splitext(output_path)[1][1:], "--outdir",
-                output_dir, file_path
-            ], check=True, capture_output=True, text=True)
+    def isDocx(self) -> bool:
+        return self._mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
-            # Вывод отладки LibreOffice
-            print("LibreOffice output:", result.stdout)
-            print("LibreOffice errors:", result.stderr)
-
-            # Проверка создания файла
-            if os.path.exists(expected_output_file):
-                os.rename(expected_output_file, output_path)
-            else:
-                raise Exception(f"Converted file not found: {expected_output_file}")
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"LibreOffice conversion failed: {e.stderr}")
-
-    def convert_html_to_docx(self, html_path, output_path):
-        """
-        Конвертирует HTML-файл в DOCX.
-        :param html_path: Путь к HTML-файлу
-        :param output_path: Путь для сохранения DOCX
-        """
-        with open(html_path, "r", encoding="utf-8") as file:
-            html_content = file.read()
-
-        buf = html2docx(html_content, basename(output_path))
-
-        with open(output_path, "wb") as fp:
-            fp.write(buf.getvalue())
-
-        print(f"HTML успешно преобразован в DOCX: {output_path}")
-
-    def _convert_with_pandoc(self, file_path: str, output_path: str):
-        """Convert document using Pandoc."""
-        try:
-            subprocess.run([
-                "pandoc", file_path, "-o", output_path
-            ], check=True)
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"Pandoc conversion failed: {str(e)}")
-
-    def _convert_with_imagemagick(self, file_path: str, output_path: str):
-        """Convert PDF to image using ImageMagick."""
-        try:
-            subprocess.run([
-                "convert", file_path, output_path
-            ], check=True)
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"ImageMagick conversion failed: {str(e)}")

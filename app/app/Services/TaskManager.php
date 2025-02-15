@@ -60,6 +60,29 @@ class TaskManager
         return $this->task->uuid;
     }
 
+    public function incrementJob()
+    {
+        DB::transaction(function () {
+            $this->task->refresh();
+            $payload = $this->task->payload;
+
+            if (isset($payload['completed_jobs'])) {
+                $payload['completed_jobs']++;
+            }
+            else {
+                $payload['completed_jobs'] = 1;
+            }
+
+            $this->task->payload = $payload;
+            $this->task->save();
+        });
+    }
+
+    public function getCompletedJobs()
+    {
+        return $this->task->payload['completed_jobs'];
+    }
+
     public function setFileStatusProcessing($hash): void
     {
         $this->updateFileStatus($hash, FileUploadHelper::FILE_STATUS_PROCESSING);

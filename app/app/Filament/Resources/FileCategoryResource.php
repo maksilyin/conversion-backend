@@ -9,6 +9,7 @@ use App\Models\Language;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
@@ -46,7 +47,24 @@ class FileCategoryResource extends Resource
                                 FileUpload::make('icon_image')
                                     ->image(),
                                 TextInput::make('icon'),
-                                Textarea::make('description'),
+                                Textarea::make('excerpt'),
+                                RichEditor::make('description')
+                                    ->toolbarButtons([
+                                        'attachFiles',
+                                        'blockquote',
+                                        'bold',
+                                        'bulletList',
+                                        'codeBlock',
+                                        'h2',
+                                        'h3',
+                                        'italic',
+                                        'link',
+                                        'orderedList',
+                                        'redo',
+                                        'strike',
+                                        'underline',
+                                        'undo',
+                                    ]),
                             ]),
                         Tabs\Tab::make('SEO')
                             ->schema([
@@ -76,7 +94,24 @@ class FileCategoryResource extends Resource
                                             ->required()
                                             ->default('ru'),
                                         TextInput::make('name')->label('Name'),
-                                        Textarea::make('description')->label('Description'),
+                                        Textarea::make('excerpt')->label('Excerpt'),
+                                        RichEditor::make('description')
+                                            ->toolbarButtons([
+                                                'attachFiles',
+                                                'blockquote',
+                                                'bold',
+                                                'bulletList',
+                                                'codeBlock',
+                                                'h2',
+                                                'h3',
+                                                'italic',
+                                                'link',
+                                                'orderedList',
+                                                'redo',
+                                                'strike',
+                                                'underline',
+                                                'undo',
+                                            ]),
                                     ])
                                     ->collapsed(false)
                                     ->createItemButtonLabel('Add Translation')

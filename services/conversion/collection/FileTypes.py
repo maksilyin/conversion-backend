@@ -9,7 +9,6 @@ fileTypes = {
         "image/tiff",                  # TIFF изображения
         "image/x-icon",                # Иконка ICO
         "image/vnd.microsoft.icon",    # Microsoft ICO
-        "image/svg+xml",               # SVG изображения
         "image/vnd.adobe.photoshop",   # PSD изображения (Adobe Photoshop)
 
         # HEIC/HEIF
@@ -288,7 +287,6 @@ fileTypes = {
 
         # SVG Fonts
         "font/svg",                      # SVG Fonts
-        "image/svg+xml",                 # SVG (alternative use as a font)
 
         # Bitmap Fonts
         "application/x-font-bdf",        # BDF
@@ -494,7 +492,7 @@ fileTypes = {
         "application/x-sas",                              # SAS Dataset
         "application/vnd.ms-pki.seccat",                  # Microsoft Serialized Certificate Store
     ],
-    'e-book': [
+    'ebook': [
         # EPUB (Electronic Publication)
         "application/epub+zip",                           # EPUB
 
@@ -505,9 +503,6 @@ fileTypes = {
         # AZW (Amazon Kindle)
         "application/vnd.amazon.ebook",                   # AZW
         "application/vnd.amazon.mobi8-ebook",             # AZW3 (alternative MIME)
-
-        # PDF (Portable Document Format)
-        "application/pdf",                                # PDF (e-book use case)
 
         # FB2 (FictionBook 2)
         "application/x-fictionbook+xml",                  # FB2
@@ -526,15 +521,6 @@ fileTypes = {
         # IBA (Apple iBooks Author)
         "application/vnd.apple.ibooks",                   # IBA
 
-        # TXT (Plain Text E-Books)
-        "text/plain",                                     # TXT (Plain Text)
-
-        # RTF (Rich Text Format)
-        "application/rtf",                                # RTF
-
-        # HTML (Web-Based E-Books)
-        "text/html",                                      # HTML
-
         # LRF (Sony Reader)
         "application/x-sony-bbeb",                        # LRF
         "application/x-sony-bbeb+xml",                    # LRX (alternative MIME)
@@ -549,7 +535,6 @@ fileTypes = {
         # Other Formats
         "application/vnd.oasis.opendocument.text",        # ODT (OpenDocument Text)
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # DOCX (e-book use case)
-        "application/msword",                             # DOC (Microsoft Word)
     ],
     'script': [
         # Python

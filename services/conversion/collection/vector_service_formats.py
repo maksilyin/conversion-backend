@@ -1,0 +1,52 @@
+uniconvertor_input = [
+    "SK2",
+    "SVG",
+    "SVGZ",
+    "CDR",
+    "CMX",
+    "CCX",
+    "XAR",
+    "PLT",
+    "SK1",
+    "SK",
+    "FIG",
+    "CGM",
+    "DST",
+    "PES",
+    "PNG",
+    "JPEG",
+    "PSD",
+    "XCF",
+    "JPEG2000",
+    "TIFF",
+    "GIF",
+    "BMP",
+    "PCX",
+    "PPM",
+    "XBM",
+    "XPM",
+    "WebP",
+]
+uniconvertor_output = [
+    "SK2",
+    "SVG",
+    "SVGZ",
+    "PLT",
+    "PDF",
+    "CDR",
+    "CMX",
+    "CCX",
+    "SK1",
+    "SK",
+    "CGM",
+    "FIG",
+    "DST",
+    "PNG",
+]
+libreoffice_output = [
+    'EMF',
+    'WMF',
+]
+inkscape_formats = [
+
+]

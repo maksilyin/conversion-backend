@@ -15,10 +15,14 @@ trait HasSEO
     {
         if ($this->metaTagsCache === null) {
             $locale = app()->getLocale();
-            $this->metaTagsCache = $this->seo()->where('locale', $locale)->first();
+            $this->metaTagsCache = $this->seo()->where('locale', $locale)->select('meta_title', 'meta_description', 'meta_keywords')->first();
         }
 
-        return $this->metaTagsCache;
+        return [
+            'title' => $this->metaTagsCache->meta_title,
+            'description' => $this->metaTagsCache->meta_description,
+            'keywords' => $this->metaTagsCache->meta_keywords,
+        ];
     }
 
     protected static function bootHasSEO(): void

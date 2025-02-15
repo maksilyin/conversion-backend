@@ -13,7 +13,7 @@ class FileCategory extends Model
     use HasTranslatable;
     use HasSEO;
 
-    protected $fillable = ['name', 'sort', 'slug', 'description', 'icon_image', 'icon'];
+    protected $fillable = ['name', 'sort', 'slug', 'description', 'excerpt', 'icon_image', 'icon'];
     public function formats()
     {
         return $this->hasMany(FileFormat::class, 'category_id');

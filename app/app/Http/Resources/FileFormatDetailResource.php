@@ -43,6 +43,7 @@ class FileFormatDetailResource extends JsonResource
                     'slug' => $category->slug,
                 ];
             }),
+            'seo' => property_exists($this, 'seo') ? $this->metaTags : null,
         ];
     }
 }

@@ -12,7 +12,7 @@ class FileFormatsController extends Controller
 {
     public function formats()
     {
-        $fileCategories = FileCategory::select('id', 'name', 'slug', 'icon', 'icon_image')
+        $fileCategories = FileCategory::select('id', 'name', 'slug', 'icon', 'icon_image', 'excerpt')
             ->with([
                 'translations',
                 'formats:id,name,extension,category_id,icon,icon_image,mime_type,extended_name,color',
@@ -28,7 +28,7 @@ class FileFormatsController extends Controller
     {
         $fileFormat = FileFormat::where('extension', $format)
             ->where('active', 1)
-            ->with(['category:id,name,slug', 'convertible:id,name,extension', 'convertibleCategory:id,slug'])
+            ->with(['seo', 'translations', 'category:id,name,slug', 'convertible:id,name,extension', 'convertibleCategory:id,slug'])
             ->firstOrFail();
 
         return FileFormatDetailResource::make($fileFormat)->toArray(request());
@@ -36,9 +36,10 @@ class FileFormatsController extends Controller
 
     public function fileType($type)
     {
-        $fileCategory = FileCategory::select('id', 'name', 'slug', 'icon', 'icon_image')
+        $fileCategory = FileCategory::select('id', 'name', 'slug', 'icon', 'icon_image', 'description')
             ->where('slug', $type)
             ->with([
+                'seo',
                 'translations',
                 'formats:id,name,extension,category_id,icon,icon_image,mime_type,extended_name,color',
                 'formats.convertible:id,name,extension',

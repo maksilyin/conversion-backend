@@ -16,6 +16,12 @@ class TaskFileRepository
     {
         $this->task = $task;
         $this->files = $task->payload['files'] ?? [];
+
+        foreach ($this->files as &$file) {
+            if (isset($file['result'])) {
+                $file['result'] = current($file['result']);
+            }
+        }
     }
 
     public function getFileByHash(string $hash, $withPath = false)
@@ -31,7 +37,8 @@ class TaskFileRepository
         }
 
         if ($withPath) {
-            $fileItem['fullPath'] = $this->getFullPath($fileItem['filename']);
+            $filename = FileUploadHelper::getFileName($fileItem['hash'], $fileItem['filename']);
+            $fileItem['fullPath'] = $this->getFullPath($filename);
         }
 
         return $fileItem;

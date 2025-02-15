@@ -90,8 +90,31 @@ services:
     depends_on:
       - rabbitmq
       - app
+    environment:
+      - QTWEBENGINE_CHROMIUM_FLAGS="--no-sandbox"
+    networks:
+      - laravel
+  uniconvertor:
+    build:
+      context: ./services/uniconvertor
+    container_name: uniconvertor
+    volumes:
+      - ./services/uniconvertor:/app
+      - ./app/storage/app/uploads:/app/storage
+    depends_on:
+      - rabbitmq
+      - app
     networks:
       - laravel
 
+  pdf2htmlex:
+    build:
+      context: ./services/pdf2htmlex
+    container_name: pdf2htmlex
+    volumes:
+      - ./services/pdf2htmlex:/app
+      - ./app/storage/app/uploads:/app/storage
+    networks:
+      - laravel
 networks:
   laravel:

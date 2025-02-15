@@ -46,6 +46,7 @@ class FileCategoryResource extends JsonResource
                     }),
                 ];
             }),
+            'seo' => property_exists($this, 'seo') ? $this->metaTags : null,
         ];
     }
 }

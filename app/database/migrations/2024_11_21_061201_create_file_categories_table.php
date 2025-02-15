@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('sort')->default(500);
             $table->string('name');
             $table->string('slug')->unique();
+            $table->text('excerpt')->nullable();
             $table->text('description')->nullable();
             $table->string('icon_image')->nullable();
             $table->string('icon')->nullable();

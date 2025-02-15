@@ -29,5 +29,10 @@ Route::get('/formats/', [FileFormatsController::class, 'formats'])->middleware(S
 Route::get('/formats/{format}/', [FileFormatsController::class, 'show'])->middleware(SetLocale::class);
 Route::get('/formats/type/{type}/', [FileFormatsController::class, 'fileType'])->middleware(SetLocale::class);
 
-Route::get('/test/', [\App\Http\Controllers\TestFormatController::class, 'test']);
-Route::get('/test/task', [\App\Http\Controllers\TestFormatController::class, 'testTask']);
+//Route::get('/test/', [\App\Http\Controllers\TestFormatController::class, 'test']);
+//Route::get('/test/task/', [\App\Http\Controllers\TestFormatController::class, 'testTask']);
+Route::get('/page/', [\App\Http\Controllers\PageController::class, 'index'])->middleware(SetLocale::class);
+Route::get('/text/{key}/', [\App\Http\Controllers\TextBlockController::class, 'show'])->middleware(SetLocale::class);
+
+Route::get('/sitemap/', [\App\Http\Controllers\SitemapController::class, 'index']);
+Route::get('/lang/', [\App\Http\Controllers\LanguageController::class, 'index']);
