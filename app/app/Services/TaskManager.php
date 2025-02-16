@@ -12,8 +12,6 @@ use phpseclib3\File\ASN1\Maps\Extension;
 
 class TaskManager
 {
-    const STATUS_COMPLETE = 'complete';
-    const STATUS_PENDING = 'pending';
     private ?Task $task = null;
     private $payload = [];
     private TaskFileRepository $taskFileRepository;
@@ -46,7 +44,7 @@ class TaskManager
 
     public function setComplete(): void
     {
-        $this->task->status = self::STATUS_COMPLETE;
+        $this->task->status = Task::STATUS_COMPLETE;
         $this->task->save();
     }
 
@@ -117,7 +115,7 @@ class TaskManager
 
     public function isTaskCompleted(): bool
     {
-        return $this->task->status === self::STATUS_COMPLETE;
+        return $this->task->status === Task::STATUS_COMPLETE;
     }
 
     public function getFileByHash(string $hash, bool $withPath = false): ?array

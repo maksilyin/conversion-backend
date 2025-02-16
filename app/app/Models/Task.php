@@ -10,6 +10,12 @@ use Illuminate\Database\Eloquent\BroadcastsEvents;
 
 class Task extends Model
 {
+    const STATUS_CREATED = 'created';
+    const STATUS_PENDING = 'pending';
+    const STATUS_COMPLETE = 'complete';
+    const STATUS_LOCK = 'lock';
+    const STATUS_CLEAR = 'clear';
+
     use BroadcastsEvents, HasFactory;
 
     protected $fillable = ['uuid', 'user_id', 'type', 'status', 'payload'];

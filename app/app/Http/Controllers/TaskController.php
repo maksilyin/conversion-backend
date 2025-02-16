@@ -49,7 +49,7 @@ class TaskController extends Controller
         $payload = $this->taskServiceFactory->createAdapter($taskType)->filter($taskUuid, $payload);
 
         $oTask->fill([
-            'status' => 'pending',
+            'status' => Task::STATUS_PENDING,
             'payload' => $payload,
             'type' => $taskType,
         ]);

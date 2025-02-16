@@ -14,6 +14,8 @@ services:
       - laravel
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       - APP_URL=${APP_URL}
       - APP_ENV=${APP_ENV}
@@ -24,6 +26,7 @@ services:
       - DB_PORT=${MYSQL_PORT}
       - REDIS_HOST=redis
       - QUEUE_CONNECTION=rabbitmq
+      - TASK_EXPIRATION_TIME=${TASK_EXPIRATION_TIME}
 
   nginx:
     image: nginx:latest
