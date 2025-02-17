@@ -16,12 +16,12 @@ class FileUploadHelper
 
     public static function getTmpDir($uuid): string
     {
-        return storage_path('app/uploads/temp/' . $uuid . '/');
+        return storage_path('app/private/uploads/temp/' . $uuid . '/');
     }
 
     public static function getDir($uuid): string
     {
-        return storage_path('app/uploads/complete/' . $uuid . '/');
+        return storage_path('app/private/uploads/complete/' . $uuid . '/');
     }
 
     public static function getFileName($hash, $filename): string

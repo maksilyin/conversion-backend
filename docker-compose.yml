@@ -96,7 +96,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./services/conversion:/app
-      - ./app/storage/app/uploads:/app/storage
+      - ./app/storage/app/private/uploads:/app/storage
     depends_on:
       - rabbitmq
       - app
@@ -113,7 +113,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./services/uniconvertor:/app
-      - ./app/storage/app/uploads:/app/storage
+      - ./app/storage/app/private/uploads:/app/storage
     depends_on:
       - rabbitmq
       - app
@@ -127,7 +127,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./services/pdf2htmlex:/app
-      - ./app/storage/app/uploads:/app/storage
+      - ./app/storage/app/private/uploads:/app/storage
     networks:
       - internal
 networks:
