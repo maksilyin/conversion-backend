@@ -1,3 +1,4 @@
+import os
 import pika
 import json
 from classes.FileConverter import FileConverter
@@ -61,7 +62,13 @@ def process_conversion_task(task_data):
     send_response(task_data['task_id'], task_data['hash'], result, task_data)
 
 
-connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
+RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
+
+credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASSWORD)
+parameters = pika.ConnectionParameters(host='rabbitmq', credentials=credentials)
+
+connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
 channel.queue_declare(queue='convert', durable=True)
 
