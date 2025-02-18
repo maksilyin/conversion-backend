@@ -3,10 +3,16 @@ import pika
 import json
 from classes.FileConverter import FileConverter
 
+RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
 
 def send_response(task, hash, result, payload):
     print('send_response')
-    connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
+
+    credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASSWORD)
+    parameters = pika.ConnectionParameters(host='rabbitmq', credentials=credentials)
+    
+    connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
     channel.queue_declare(queue='service_messages')
 
@@ -60,10 +66,6 @@ def process_conversion_task(task_data):
         return
 
     send_response(task_data['task_id'], task_data['hash'], result, task_data)
-
-
-RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
-RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
 
 credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASSWORD)
 parameters = pika.ConnectionParameters(host='rabbitmq', credentials=credentials)

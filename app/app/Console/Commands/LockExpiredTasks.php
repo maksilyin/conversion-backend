@@ -44,7 +44,5 @@ class LockExpiredTasks extends Command
         $lockedCount = Task::where('created_at', '<', now()->subMinutes($expirationTime))
             ->whereNotIn('status', [Task::STATUS_CLEAR, Task::STATUS_LOCK])
             ->update(['status' => Task::STATUS_LOCK]);
-
-        Log::info("Заблокировано задач: $lockedCount");
     }
 }
