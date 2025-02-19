@@ -43,6 +43,18 @@ class TaskController extends Controller
         $taskUuid = $request->input('task');
         $oTask = Task::getByUuid($taskUuid);
 
+        if ($oTask->status == Task::STATUS_LOCK) {
+            abort(423, 'Task is locked and cannot be started.');
+        }
+
+        if ($oTask->status === Task::STATUS_CLEAR) {
+            abort(400, 'Task has been cleared and cannot be restarted.');
+        }
+
+        if ($oTask->status === Task::STATUS_PENDING) {
+            abort(409, 'Task is already pending.');
+        }
+
         $taskId = $oTask->id;
         $payload = $request->input('payload');
 
