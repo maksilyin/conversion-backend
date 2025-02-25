@@ -3,6 +3,8 @@
 namespace App\Rules;
 
 use App\Models\FileFormat;
+use App\Models\Task;
+use App\Services\TaskManager;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Cache;
@@ -10,8 +12,11 @@ use Illuminate\Support\Facades\Cache;
 class ConvertPayloadRule implements ValidationRule
 {
     private $extensions = [];
-    public function __construct()
+    private Task $task;
+    public function __construct(TaskManager $taskManager)
     {
+        $this->task = $taskManager->getTask();
+
         $this->extensions = Cache::remember('file_formats_extensions', 60 * 60, function () {
             $formats = FileFormat::where('active', 1)
                 ->select('id', 'category_id', 'extension')
@@ -57,6 +62,8 @@ class ConvertPayloadRule implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        $valueFiles = [];
+
         if (!is_array($value) || !isset($value['files'])) {
             $fail('The :attribute must contain a "files" array.');
             return;
@@ -74,6 +81,17 @@ class ConvertPayloadRule implements ValidationRule
             }
 
             $this->validateParams($file['params'], $fail);
+
+            $valueFiles[$file['hash']] = $file;
+        }
+
+        $payload = $this->task->payload;
+
+        foreach ($payload['files'] as $file) {
+            if (!isset($valueFiles[$file['hash']])) {
+                $fail("File with hash {$file['hash']} was not found in the provided data.");
+                return;
+            }
         }
     }
 

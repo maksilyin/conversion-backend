@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Task;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,7 +18,7 @@ class CheckTask
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $uuid = $request->route('task');
+        $uuid = $request->input('task');
 
         if (!$uuid || !Str::isUuid($uuid) || !Task::isExists($uuid)) {
             return response()->json(['error' => 'Invalid or missing task UUID'], 400);

@@ -4,8 +4,10 @@ namespace App\Factories;
 
 use App\Contracts\ServiceAdapterContract;
 use App\Contracts\TaskContract;
+use App\Models\Task;
 use App\Registry\TaskRegistry;
 use App\Services\ConvertService;
+use App\Services\TaskManager;
 use Exception;
 use Illuminate\Contracts\Validation\ValidationRule;
 use InvalidArgumentException;
@@ -33,7 +35,18 @@ class TaskServiceFactory
         return app($service);
     }
 
-    public function createValidator(string $taskType): ValidationRule
+    /**
+     * @throws Exception
+     */
+    public function hasTaskService(string $taskType): bool
+    {
+        return !empty($this->registry->getConfig($taskType));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function createValidator(string $taskType, TaskManager $taskManager): ValidationRule
     {
         $config = $this->registry->getConfig($taskType);
 
@@ -41,9 +54,12 @@ class TaskServiceFactory
             throw new Exception("No validator found for task type '{$taskType}'.");
         }
 
-        return app($config['validator']);
+        return app($config['validator'], ['taskManager' => $taskManager]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function createHandler(string $taskType): TaskContract
     {
         $config = $this->registry->getConfig($taskType);
@@ -55,6 +71,9 @@ class TaskServiceFactory
         return app($config['handler']);
     }
 
+    /**
+     * @throws Exception
+     */
     public function createAdapter(string $taskType): ServiceAdapterContract
     {
         $config = $this->registry->getConfig($taskType);

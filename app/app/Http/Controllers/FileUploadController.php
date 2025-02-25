@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\FileUploadHelper;
 use App\Models\Task;
+use App\Services\FileService;
 use App\Services\TaskManager;
 use Exception;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +14,11 @@ use Illuminate\Http\Request;
 
 class FileUploadController extends Controller
 {
+    private FileService $fileService;
+    public function __construct()
+    {
+        $this->fileService = new FileService();
+    }
     public function uploadChunk(Request $request): JsonResponse
     {
         $request->validate([
@@ -29,24 +35,17 @@ class FileUploadController extends Controller
         $fileIdentifier = $request->input('hash');
         $total = $request->input('total');
         $task = $request->input('task');
-        $tempDir = FileUploadHelper::getTmpDir($task);
+        $filename = $request->input('filename');
 
-        if (!file_exists($tempDir)) {
-            mkdir($tempDir, 0755, true);
-        }
-
-        $chunkFileName = FileUploadHelper::getFileName($fileIdentifier, $chunkIndex);
-
-        $chunk->move($tempDir, $chunkFileName);
+        $this->fileService->setUuid($task);
+        $this->fileService->uploadChunk($chunk, $fileIdentifier, $chunkIndex);
 
         $status = true;
         $fileInfo = [];
 
         if ($chunkIndex === $total) {
-            $outputFile = $this->completeUpload($fileIdentifier, $task, $request->input('filename'));
-            $fileInfo = FileUploadHelper::getFileInfo($outputFile);
-
-            Cache::forget("uploaded_size_{$fileIdentifier}");
+            $outputFile = $this->fileService->mergeChunks($fileIdentifier, $filename);
+            $fileInfo = $this->fileService->getFileInfo($outputFile);
         }
 
         return response()->json([
@@ -56,58 +55,22 @@ class FileUploadController extends Controller
         ]);
     }
 
-    public function deleteFile(Request $request): true
+    public function deleteFile(Task $task, string $hash): true
     {
-        $request->validate([
-            'filename' => 'required|string',
-            'task' => 'required|uuid',
-            'hash' => 'required|uuid',
-        ]);
+        $taskManager = new TaskManager($task);
+        $taskManager->updateFileStatus($hash, FileUploadHelper::FILE_STATUS_DELETE);
+        $taskManager->deleteFileByHash($hash);
 
-        $task = $request->input('task');
-        $hash = $request->input('hash');
-        $filename = $request->input('filename');
-        $path = FileUploadHelper::getFilePathOriginal($task, $hash, $filename);
-
-        if (file_exists($path)) {
-            unlink($path);
-        }
+        $this->fileService->setUuid($task->uuid);
+        $this->fileService->deleteFileByHash($hash);
 
         return true;
-    }
-
-    public function completeUpload($hash, $task, $fileName): string
-    {
-        $fileIdentifier = $hash;
-        $originalFileName = FileUploadHelper::getFileName($fileIdentifier, $fileName);
-        $tempDir = FileUploadHelper::getTmpDir($task);;
-        $finalPath = FileUploadHelper::getDir($task);
-
-        if (!file_exists($finalPath)) {
-            mkdir($finalPath, 0755, true);
-        }
-        $outputFile = fopen($finalPath . $originalFileName, 'ab');
-
-        $chunkIndex = 1;
-
-        while (file_exists( $tempDir . FileUploadHelper::getFileName($fileIdentifier, $chunkIndex))) {
-            $chunkPath = $tempDir . FileUploadHelper::getFileName($fileIdentifier, $chunkIndex);
-            $chunk = fopen($chunkPath, 'rb');
-            stream_copy_to_stream($chunk, $outputFile);
-            fclose($chunk);
-            unlink($chunkPath);
-            $chunkIndex++;
-        }
-
-        fclose($outputFile);
-
-        return $finalPath . $originalFileName;
     }
 
     public function download(Task $task, string $hash)
     {
         $taskManager = new TaskManager($task);
-
+        $this->fileService->setUuid($task->uuid);
         $file = $taskManager->getFileResult($hash);
 
         $fileContent = file_get_contents($file['fullPath']);

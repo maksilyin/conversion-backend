@@ -14,32 +14,31 @@ class ProcessTaskJob implements ShouldQueue
 {
     use Queueable;
 
-    private Task $task;
-    private TaskManager $taskManager;
-    private TaskServiceFactory $taskServiceFactory;
-    private $uuid;
+    private $taskUuid;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($taskId)
+    public function __construct($taskUuid)
     {
-        $this->task = Task::where('id', $taskId)->firstOrFail();
-        $this->taskManager = new TaskManager($this->task);
-        $this->uuid = $this->task->uuid;
-        $this->taskServiceFactory = app(TaskServiceFactory::class);
+        $this->taskUuid = $taskUuid;
     }
 
     /**
      * Execute the job.
+     * @throws \Exception
      */
     public function handle(): void
     {
-        $taskType = $this->task->type;
-        $adapter = $this->taskServiceFactory->createAdapter($taskType);
-        $service = $this->taskServiceFactory->createHandler($taskType);
+        $taskManager = new TaskManager(null, $this->taskUuid);
+        $task = $taskManager->getTask();
+        $taskServiceFactory = app(TaskServiceFactory::class);
 
-        $payload = $adapter->prepare($this->task->payload, $this->taskManager);
-        $service->execute($payload, $this->taskManager);
+        $taskType = $task->type;
+        $adapter = $taskServiceFactory->createAdapter($taskType);
+        $service = $taskServiceFactory->createHandler($taskType);
+
+        $payload = $adapter->prepare($taskManager->getPayload(), $taskManager);
+        $service->execute($payload, $taskManager);
     }
 }

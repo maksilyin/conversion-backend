@@ -6,54 +6,73 @@ use App\Contracts\ServiceAdapterContract;
 use App\Helpers\FileUploadHelper;
 use App\Models\FileFormat;
 use App\Models\Task;
+use App\Services\FileService;
 use App\Services\TaskManager;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class ConvertServiceAdapter implements ServiceAdapterContract
 {
-
-    public function filter(string $uuid, array $payload): array
+    public function create(array $payload): array
     {
-        $task = Task::getByUuid($uuid);
-        $completedFiles = [];
-        $jobs = 0;
-        $completedJobs = 0;
+        $hash = !empty($payload['hash']) ? $payload['hash'] : (string) Str::uuid();
 
-        if ($task && $task->payload) {
-            $completedFiles = $task->payload['files'];
-            $jobs = $task->payload['jobs'];
-            $completedJobs = $task->payload['completed_jobs'];
-        }
+        return [
+            'hash' => $hash,
+            'status' => FileUploadHelper::FILE_STATUS_CREATED,
+            'filename' => $payload['filename'],
+            'extension' => pathinfo($payload['filename'], PATHINFO_EXTENSION),
+            'size' => $payload['size'],
+            'params' => [
+                'convert' => []
+            ],
+        ];
+    }
+
+    public function filter(array $payload, TaskManager $taskManager): array
+    {
+        $uuid = $taskManager->getUuid();
+        $jobs = $taskManager->getPayloadKey('jobs');
+        $completedJobs = $taskManager->getPayloadKey('completed_jobs');
+        $taskFiles = $taskManager->getPayloadKey('files');
 
         $data = [
-            'files' => $completedFiles,
+            'files' => [],
             'jobs' => $jobs,
             'completed_jobs' => $completedJobs,
         ];
 
+        $payloadFiles = [];
+
         foreach ($payload['files'] as $file) {
+            $payloadFiles[$file['hash']] = $file;
+        }
 
-            if ($file['status'] != FileUploadHelper::FILE_STATUS_UPLOADED) {
-                continue;
+        foreach ($taskFiles as $file) {
+            if ($file['status'] == FileUploadHelper::FILE_STATUS_CREATED) {
+                $fileData = $payloadFiles[$file['hash']];
+
+                $fileName = FileUploadHelper::getFileName($fileData['hash'], $fileData['filename']);
+                $fileArray = FileUploadHelper::getFileArray($uuid, $fileName);
+
+                $params = [
+                    'hash' => $fileData['hash'],
+                    'status' => $fileData['status'],
+                    'filename' => $fileData['filename'],
+                    'extension' => $fileArray['extension'],
+                    'mimetype' => $fileArray['mimetype'],
+                    'size' => $fileArray['size'],
+                    'params' => [
+                        'convert' => [current($fileData['params']['convert'])] //TODO убрать, если планируется конвертация в несколько форматов
+                    ],
+                ];
+
+                $data['jobs']++;
+                $data['files'][] = $params;
             }
-
-            $fileName = FileUploadHelper::getFileName($file['hash'], $file['filename']);
-            $fileArray = FileUploadHelper::getFileArray($uuid, $fileName);
-            //$fileFormat = FileFormat::where('extension', $fileArray['extension'])->with('category:id,slug')->first();
-
-            $params = [
-                'hash' => $file['hash'],
-                'status' => $file['status'],
-                'filename' => $file['filename'],
-                'extension' => $fileArray['extension'],
-                'mimetype' => $fileArray['mimetype'],
-                'size' => $fileArray['size'],
-                'params' => [
-                    'convert' => [current($file['params']['convert'])] //TODO убрать, если планируется конвертация в несколько форматов
-                ],
-            ];
-            $data['jobs']++;
-            $data['files'][] = $params;
+            else {
+                $data['files'][] = $file;
+            }
         }
 
         return $data;
@@ -63,6 +82,7 @@ class ConvertServiceAdapter implements ServiceAdapterContract
     {
         $uuid = $taskManager->getUuid();
         $payload['task_id'] = $uuid;
+        $fileService = new FileService($uuid);
 
         $fileFormats = Cache::remember('file_formats_with_categories', 3600, function () {
             return FileFormat::with('category:id,slug')
@@ -76,7 +96,8 @@ class ConvertServiceAdapter implements ServiceAdapterContract
         });
 
         foreach ($payload['files'] as &$file) {
-            $file['service_path'] = FileUploadHelper::getFilePathForService($uuid, $file['hash'], $file['filename']);
+            $file['service_path'] = $fileService->getFilePathForService($file['hash']);
+            //$file['service_path'] = FileUploadHelper::getFilePathForService($uuid, $file['hash'], $file['filename']);
             $file['file_type'] = $fileFormats[$file['extension']] ?? 'unknown';
         }
 

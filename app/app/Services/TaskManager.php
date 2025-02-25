@@ -8,17 +8,24 @@ use App\Repositories\TaskFileRepository;
 use Exception;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use phpseclib3\File\ASN1\Maps\Extension;
 
 class TaskManager
 {
     private ?Task $task = null;
-    private $payload = [];
+    private array $payload = [];
     private TaskFileRepository $taskFileRepository;
+    private TaskCleaner $taskCleaner;
+    private Bool $autoSave;
 
-    public function __construct(Task $task = null, $taskUuid = false)
+    /**
+     * @throws Exception
+     */
+    public function __construct(Task $task = null, $taskUuid = false, $autoSave = true)
     {
         $this->setTask($task, $taskUuid);
+        $this->autoSave = $autoSave;
     }
 
     public function setTask(Task $task = null, $taskUuid = false): void
@@ -34,7 +41,8 @@ class TaskManager
             throw new Exception("Task not found");
         }
         $this->payload = $this->task->payload;
-        $this->taskFileRepository = new TaskFileRepository($task);
+        $this->taskFileRepository = new TaskFileRepository($this->task);
+        $this->taskCleaner = new TaskCleaner($this->task);
     }
 
     public function hasTask(): bool
@@ -44,8 +52,7 @@ class TaskManager
 
     public function setComplete(): void
     {
-        $this->task->status = Task::STATUS_COMPLETE;
-        $this->task->save();
+        $this->setStatus(Task::STATUS_COMPLETE);
     }
 
     public function getId()
@@ -58,7 +65,50 @@ class TaskManager
         return $this->task->uuid;
     }
 
-    public function incrementJob()
+    public function getTask(): Task
+    {
+        return $this->task;
+    }
+
+    public function getPayload(): array
+    {
+        return $this->task->payload;
+    }
+
+    public function getPayloadKey($key)
+    {
+        return $this->task->payload[$key];
+    }
+
+    public function isCanLoadFile(): bool
+    {
+        return $this->status() === Task::STATUS_CREATED || $this->status() === Task::STATUS_COMPLETE;
+    }
+
+    public function save(): void
+    {
+        $this->task->save();
+    }
+
+    public function autoSave(): void
+    {
+        if ($this->autoSave) {
+            $this->save();
+        }
+    }
+
+    public function status()
+    {
+        return $this->task->status;
+    }
+
+    public function setStatus($status): void
+    {
+        $this->task->status = $status;
+        $this->autoSave();
+    }
+
+    public function incrementJob(): void
     {
         DB::transaction(function () {
             $this->task->refresh();
@@ -72,13 +122,13 @@ class TaskManager
             }
 
             $this->task->payload = $payload;
-            $this->task->save();
+            $this->autoSave();
         });
     }
 
     public function getCompletedJobs()
     {
-        return $this->task->payload['completed_jobs'];
+        return $this->getPayloadKey('completed_jobs');
     }
 
     public function setFileStatusProcessing($hash): void
@@ -105,12 +155,56 @@ class TaskManager
                         }
 
                         $this->task->payload = $payload;
-                        $this->task->save();
+                        $this->autoSave();
                         break;
                     }
                 }
             }
         });
+    }
+
+    public function setPayloadData(array $data): void
+    {
+        $payload = $this->getPayload();
+
+        foreach ($data as $key => $dataItem) {
+            $payload[$key] = $dataItem;
+        }
+
+        $this->task->payload = $payload;
+        $this->autoSave();
+    }
+
+    public function addFile($fileData): void
+    {
+        DB::transaction(function () use($fileData) {
+            $this->task->refresh();
+            $payload = $this->task->payload;
+
+            if (empty($payload['files'])) {
+                $payload['files'] = [];
+            }
+            $payload['files'][] = $fileData;
+
+            $this->task->payload = $payload;
+            $this->autoSave();
+        });
+    }
+
+    public function deleteFileByHash($hash): void
+    {
+        $payload = $this->getPayload();
+
+        if (empty($payload['files'])) {
+            return;
+        }
+
+        $payload['files'] = array_filter($payload['files'], function ($file) use ($hash) {
+            return $file['hash'] !== $hash;
+        });
+
+        $this->task->payload = $payload;
+        $this->autoSave();
     }
 
     public function isTaskCompleted(): bool
@@ -136,5 +230,10 @@ class TaskManager
     public function getPathForService(string $hash): string
     {
         return $this->taskFileRepository->getPathForService($hash);
+    }
+
+    public function clearTask(): void
+    {
+        $this->taskCleaner->clear();
     }
 }

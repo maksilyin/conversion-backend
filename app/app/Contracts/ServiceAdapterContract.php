@@ -2,6 +2,7 @@
 
 namespace App\Contracts;
 
+use App\Models\Task;
 use App\Services\TaskManager;
 
 interface ServiceAdapterContract
@@ -13,7 +14,7 @@ interface ServiceAdapterContract
      * @param array $payload
      * @return array
      */
-    public function filter(string $uuid, array $payload): array;
+    public function filter(array $payload, TaskManager $taskManager): array;
 
     /**
      * Подготавливает данные для обработчика.

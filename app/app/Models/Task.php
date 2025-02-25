@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\BroadcastsEvents;
+use Illuminate\Support\Facades\Route;
 
 class Task extends Model
 {
@@ -20,6 +21,10 @@ class Task extends Model
 
     protected $fillable = ['uuid', 'user_id', 'type', 'status', 'payload'];
     protected $hidden = ['created_at', 'updated_at', 'user_id'];
+
+    protected $disableBroadcastOnRout = [
+        'file.delete'
+    ];
 
     public function getRouteKeyName(): string
     {
@@ -47,6 +52,11 @@ class Task extends Model
 
     public function broadcastOn(string $event): array
     {
+        $currentRoute = Route::currentRouteName();
+
+        if ($this->status === self::STATUS_CREATED || in_array($currentRoute, $this->disableBroadcastOnRout)) {
+            return [];
+        }
         return [
             new Channel('task.'.$this->uuid)
         ];

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Helpers\FileUploadHelper;
 use App\Models\Task;
+use App\Services\FileService;
 use Exception;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
@@ -11,11 +12,13 @@ class TaskFileRepository
 {
     private Task $task;
     private array $files;
+    private $fileService;
 
     public function __construct(Task $task)
     {
         $this->task = $task;
         $this->files = $task->payload['files'] ?? [];
+        $this->fileService = new FileService($this->task->uuid);
 
         foreach ($this->files as &$file) {
             if (isset($file['result'])) {
@@ -37,8 +40,7 @@ class TaskFileRepository
         }
 
         if ($withPath) {
-            $filename = FileUploadHelper::getFileName($fileItem['hash'], $fileItem['filename']);
-            $fileItem['fullPath'] = $this->getFullPath($filename);
+            $fileItem['fullPath'] = $this->fileService->getFileByHash($hash);
         }
 
         return $fileItem;
@@ -68,7 +70,7 @@ class TaskFileRepository
             throw new Exception("File is not complete.");
         }
 
-        $file['result']['fullPath'] = $this->getFullPath($file['result']['filename']);
+        $file['result']['fullPath'] = $this->fileService->getFileResultByHash($hash, true);
 
         return $file['result'];
     }
@@ -78,7 +80,7 @@ class TaskFileRepository
         $arFiles = [];
 
         if (empty($this->files)) {
-            return $arFiles;
+            return [];
         }
 
         foreach ($this->files as $file) {
@@ -87,7 +89,8 @@ class TaskFileRepository
                     continue;
                 }
 
-                $file['result']['fullPath'] = $this->getFullPath($file['result']['filename']);
+                $file['result']['path'] = $this->fileService->getFileResultByHash($file['hash']);
+                $file['result']['fullPath'] = $this->fileService->getFileResultByHash($file['hash'], true);
                 $arFiles[] = $file['result'];
             }
             catch (Exception $e) {
