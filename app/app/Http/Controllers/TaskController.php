@@ -48,40 +48,6 @@ class TaskController extends Controller
     /**
      * @throws \Exception
      */
-    public function createFile(Request $request)
-    {
-        $request->validate([
-            'task' => 'required|uuid',
-            'hash' => 'required|uuid',
-            'type' => 'required|string',
-            'filename' => 'required|string',
-            'size' => 'required|integer',
-        ]);
-
-        $task = $request->input('task');
-        $taskType = $request->input('type');
-        $taskManager = new TaskManager(null, $task);
-
-        if (!$taskManager->isCanLoadFile()) {
-            abort(422, 'Files cannot be uploaded while the task is in its current state.');
-        }
-
-        $payload = $this->taskServiceFactory
-            ->createAdapter($taskType)
-            ->create([
-                'hash' => $request->input('hash'),
-                'filename' => $request->input('filename'),
-                'size' => $request->input('size'),
-            ]);
-        $taskManager->setStatus(Task::STATUS_CREATED);
-        $taskManager->addFile($payload);
-
-        return $payload['hash'];
-    }
-
-    /**
-     * @throws \Exception
-     */
     public function start(Request $request)
     {
         $request->validate([
@@ -115,8 +81,11 @@ class TaskController extends Controller
 
         $payload = $this->taskServiceFactory->createAdapter($taskType)->filter($payload, $taskManager);
 
+        \Illuminate\Support\Facades\Log::info('start setPayloadData');
         $taskManager->setPayloadData($payload);
+        \Illuminate\Support\Facades\Log::info('start setStatus');
         $taskManager->setStatus(Task::STATUS_PENDING);
+        \Illuminate\Support\Facades\Log::info('start save');
         $taskManager->save();
 
         ProcessTaskJob::dispatch($taskManager->getUuid());
@@ -124,9 +93,9 @@ class TaskController extends Controller
         return $taskManager->getUuid();
     }
 
-    public function get($task_id)
+    public function get(string $task)
     {
-        return Task::getByUuid($task_id);
+        return Task::getForResult($task);
     }
 
     public function clear(Task $task): true

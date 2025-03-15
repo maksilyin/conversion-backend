@@ -2,14 +2,13 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Task;
+use App\Models\File;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckTask
+class CheckFile
 {
     /**
      * Handle an incoming request.
@@ -18,10 +17,10 @@ class CheckTask
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $uuid = $request->route('task') ?? $request->input('task') ;
+        $hash = $request->input('hash');
 
-        if (!$uuid || !Str::isUuid($uuid) || !Task::isExists($uuid)) {
-            return response()->json(['error' => 'Invalid or missing task UUID'], 400);
+        if (!$hash || !Str::isUuid($hash) || !File::isExists($hash)) {
+            return response()->json(['error' => 'Invalid or missing file id'], 400);
         }
 
         return $next($request);

@@ -15,16 +15,14 @@ class ProcessServiceResponseJob implements ShouldQueue
 {
     use Queueable, InteractsWithQueue, SerializesModels;
     private $payload;
-    private $task;
-    private TaskManager $taskManager;
+    private $taskUuid;
     /**
      * Create a new job instance.
      */
     public function __construct($taskId, $payload)
     {
         $this->payload = $payload;
-        $this->task = Task::getByUuid($taskId);
-        $this->taskManager = new TaskManager($this->task);
+        $this->taskUuid = $taskId;
     }
 
     /**
@@ -32,13 +30,16 @@ class ProcessServiceResponseJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $taskManager = new TaskManager(null, $this->taskUuid, false);
+
         if ($this->payload['type'] === 'file') {
             $serviceResult = $this->payload['result'];
             try {
                 if ($serviceResult['status']) {
                     $status = FileUploadHelper::FILE_STATUS_COMPLETED;
-                    $filePath = FileUploadHelper::getFileFromService($this->task->uuid, $serviceResult['output']);
-                    if ($filePath && $fileArray = FileUploadHelper::getFileArray($this->task->uuid, $filePath)) {
+                    $filePath = FileUploadHelper::getFileFromService($this->taskUuid, $serviceResult['output']);
+
+                    if ($filePath && $fileArray = FileUploadHelper::getFileArray($this->taskUuid, $filePath)) {
                         unset($fileArray['src']);
                     }
                     $result = [
@@ -58,12 +59,14 @@ class ProcessServiceResponseJob implements ShouldQueue
                     "error" => $e->getMessage(),
                 ];
             }
-            $this->taskManager->updateFileStatus($this->payload['hash'], $status, $result);
-            $this->taskManager->incrementJob();
 
-            if ($this->task->payload['jobs'] == $this->taskManager->getCompletedJobs()) {
-                $this->taskManager->setComplete();
+            $taskManager->updateFileStatus($this->payload['hash'], $status, $result);
+            $taskManager->incrementJob();
+
+            if ($taskManager->getPayloadKey('jobs') == $taskManager->getCompletedJobs()) {
+                $taskManager->setComplete();
             }
+            $taskManager->save();
         }
     }
 }

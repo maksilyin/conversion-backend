@@ -24,7 +24,9 @@ class TaskManager
      */
     public function __construct(Task $task = null, $taskUuid = false, $autoSave = true)
     {
-        $this->setTask($task, $taskUuid);
+        if ($task || $taskUuid) {
+            $this->setTask($task, $taskUuid);
+        }
         $this->autoSave = $autoSave;
     }
 
@@ -136,35 +138,12 @@ class TaskManager
         $this->updateFileStatus($hash, FileUploadHelper::FILE_STATUS_PROCESSING);
     }
 
-    public function updateFileStatus($hash, $status, $result = false): void
-    {
-        DB::transaction(function () use ($hash, $status, $result) {
-            $this->task->refresh();
-            $payload = $this->task->payload;
-
-            if (!empty($payload['files'])) {
-                foreach ($payload['files'] as &$file) {
-                    if ($file['hash'] === $hash) {
-                        $file['status'] = $status;
-
-                        if ($result) {
-                            if (empty($file['result'])) {
-                                $file['result'] = [];
-                            }
-                            $file['result'][] = $result;
-                        }
-
-                        $this->task->payload = $payload;
-                        $this->autoSave();
-                        break;
-                    }
-                }
-            }
-        });
-    }
-
     public function setPayloadData(array $data): void
     {
+        if (isset($data['files'])) {
+            $this->taskFileRepository->setFiles($data['files']);
+            unset($data['files']);
+        }
         $payload = $this->getPayload();
 
         foreach ($data as $key => $dataItem) {
@@ -193,18 +172,7 @@ class TaskManager
 
     public function deleteFileByHash($hash): void
     {
-        $payload = $this->getPayload();
-
-        if (empty($payload['files'])) {
-            return;
-        }
-
-        $payload['files'] = array_filter($payload['files'], function ($file) use ($hash) {
-            return $file['hash'] !== $hash;
-        });
-
-        $this->task->payload = $payload;
-        $this->autoSave();
+        $this->taskFileRepository->deleteFileByHash($hash);
     }
 
     public function isTaskCompleted(): bool
@@ -212,9 +180,19 @@ class TaskManager
         return $this->task->status === Task::STATUS_COMPLETE;
     }
 
-    public function getFileByHash(string $hash, bool $withPath = false): ?array
+    public function getFiles(): array
     {
-        return $this->taskFileRepository->getFileByHash($hash, $withPath);
+        return $this->taskFileRepository->getFiles();
+    }
+
+    public function getUploadedFiles(): array
+    {
+        return $this->taskFileRepository->getUploadedFiles();
+    }
+
+    public function getFileById(string $hash, bool $withPath = false): ?array
+    {
+        return $this->taskFileRepository->getFileById($hash, $withPath);
     }
 
     public function getFileResult(string $hash)
@@ -230,6 +208,11 @@ class TaskManager
     public function getPathForService(string $hash): string
     {
         return $this->taskFileRepository->getPathForService($hash);
+    }
+
+    public function updateFileStatus($hash, $status, $result = null): void
+    {
+        $this->taskFileRepository->updateFileStatus($hash, $status, $result);
     }
 
     public function clearTask(): void

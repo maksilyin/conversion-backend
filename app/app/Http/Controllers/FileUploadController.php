@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\FileUploadHelper;
+use App\Models\File;
 use App\Models\Task;
+use App\Repositories\FileRepository;
 use App\Services\FileService;
 use App\Services\TaskManager;
 use Exception;
@@ -18,6 +20,29 @@ class FileUploadController extends Controller
     public function __construct()
     {
         $this->fileService = new FileService();
+    }
+    public function create(TaskManager $taskManager, Request $request)
+    {
+        $request->validate([
+            'task' => 'required|uuid',
+            'filename' => 'required|string',
+        ]);
+
+        if (!$taskManager->isCanLoadFile()) {
+            abort(422, 'Files cannot be uploaded while the task is in its current state.');
+        }
+
+        $filename = $request->input('filename');
+        $size = $request->input('size');
+
+        $file = File::create([
+            'task_id' => $taskManager->getId(),
+            'filename' => $filename,
+            'size' => $size,
+            'extension' => pathinfo($filename, PATHINFO_EXTENSION),
+        ]);
+
+        return $file->id;
     }
     public function uploadChunk(Request $request): JsonResponse
     {
@@ -46,6 +71,14 @@ class FileUploadController extends Controller
         if ($chunkIndex === $total) {
             $outputFile = $this->fileService->mergeChunks($fileIdentifier, $filename);
             $fileInfo = $this->fileService->getFileInfo($outputFile);
+
+            $fileRepository = new FileRepository();
+            $fileRepository->updateFile($fileIdentifier, [
+                'status' => FileUploadHelper::FILE_STATUS_UPLOADED,
+                'mimetype' => $fileInfo['mimetype'],
+                'size' => $fileInfo['size'],
+                'extension' => $fileInfo['extension'],
+            ]);
         }
 
         return response()->json([
@@ -55,24 +88,16 @@ class FileUploadController extends Controller
         ]);
     }
 
-    public function deleteFile(Task $task, string $hash): true
+    public function deleteFile(FileRepository $fileRepository, string $task, string $hash): true
     {
-        $taskManager = new TaskManager($task);
-        $taskManager->updateFileStatus($hash, FileUploadHelper::FILE_STATUS_DELETE);
-        $taskManager->deleteFileByHash($hash);
-
-        $this->fileService->setUuid($task->uuid);
-        $this->fileService->deleteFileByHash($hash);
-
+        $fileRepository->deleteFile($hash);
         return true;
     }
 
-    public function download(Task $task, string $hash)
+    public function download(TaskManager $taskManager, string $task, string $hash)
     {
-        $taskManager = new TaskManager($task);
-        $this->fileService->setUuid($task->uuid);
+        $this->fileService->setUuid($task);
         $file = $taskManager->getFileResult($hash);
-
         $fileContent = file_get_contents($file['fullPath']);
         $mimeType = $file['mimetype'];
         $fileName = $file['originalName'];
@@ -84,10 +109,9 @@ class FileUploadController extends Controller
         ]);
     }
 
-    public function showImg(Task $task, string $hash)
+    public function showImg(TaskManager $taskManager, string $task, string $hash)
     {
-        $taskManager = new TaskManager($task);
-        $file = $taskManager->getFileByHash($hash, true);
+        $file = $taskManager->getFileById($hash, true);
         $mimeType = $file['mimetype'];
 
         if (!strpos($mimeType, 'image/') === false) {
@@ -102,17 +126,15 @@ class FileUploadController extends Controller
             'Content-Length' => strlen($fileContent),
         ]);
     }
-    public function downloadZip(Task $task)
+    public function downloadZip(TaskManager $taskManager, string $task)
     {
-        $taskManager = new TaskManager($task);
-
         $files = $taskManager->getFileResultList();
 
         if (empty($files)) {
             abort(400, 'No files available for download.');
         }
 
-        $zipPath = $this->createZip($task->uuid, $files);
+        $zipPath = $this->createZip($task, $files);
 
         return Response::download($zipPath)->deleteFileAfterSend(true);
     }

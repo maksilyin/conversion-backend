@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\Cache;
 class ConvertPayloadRule implements ValidationRule
 {
     private $extensions = [];
-    private Task $task;
+    private TaskManager $taskManager;
     public function __construct(TaskManager $taskManager)
     {
-        $this->task = $taskManager->getTask();
+        $this->taskManager = $taskManager;
 
         $this->extensions = Cache::remember('file_formats_extensions', 60 * 60, function () {
             $formats = FileFormat::where('active', 1)
@@ -85,9 +85,9 @@ class ConvertPayloadRule implements ValidationRule
             $valueFiles[$file['hash']] = $file;
         }
 
-        $payload = $this->task->payload;
+        $files = $this->taskManager->getUploadedFiles();
 
-        foreach ($payload['files'] as $file) {
+        foreach ($files as $file) {
             if (!isset($valueFiles[$file['hash']])) {
                 $fail("File with hash {$file['hash']} was not found in the provided data.");
                 return;

@@ -51,6 +51,15 @@ class ImageConverter(ConverterBase, ABC):
     def set_params(self, img: WandImage) -> WandImage:
         if self._output_format == 'ico' and (img.width > 256 or img.height > 256):
             img.resize(256, 256)
+        img.compression_quality = 75
+        if (self._output_format == 'webp'):
+            img.compression_quality = 50
+            img.options['webp:lossless'] = 'false'
+            img.options['webp:auto-filter'] = 'true'
+            img.options['webp:method'] = '6'
+            img.options['webp:exact'] = 'true'
+
+
         return img
 
     def _cleanup_tmp(self):

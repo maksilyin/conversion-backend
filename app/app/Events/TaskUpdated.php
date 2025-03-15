@@ -11,7 +11,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TaskUpdated
+class TaskUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -24,19 +24,25 @@ class TaskUpdated
         $this->task = $task;
     }
 
-    /*public function broadcastOn(): Channel
+    public function broadcastAs()
     {
-        return new Channel('task.' . $this->task->uuid);
+        return 'TaskUpdated';
+    }
+
+    public function broadcastOn(): array
+    {
+        return [
+            new Channel('task.'.$this->task->uuid)
+        ];
     }
 
     public function broadcastWith(): array
     {
         return [
-            'id' => $this->task->id,
             'uuid' => $this->task->uuid,
             'type' => $this->task->type,
             'status' => $this->task->status,
-            'payload' => $this->task->payload,
+            'payload' => $this->task->getPayload(),
         ];
-    }*/
+    }
 }

@@ -7,6 +7,7 @@ use App\Helpers\FileUploadHelper;
 use App\Jobs\ProcessTaskJob;
 use App\Models\FileFormat;
 use App\Models\Task;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -128,5 +129,18 @@ class TestFormatController
             }
             echo "</ul>";
         }
+    }
+
+    public function event(): true
+    {
+        $taskUuid = 'ed8d1574-edc1-4e01-abe9-ee21a2280b80';
+        $oTask = Task::getByUuid($taskUuid);
+        Broadcast::channel('task.' . $oTask->uuid, function () {
+            return true;
+        });
+
+        broadcast(new \App\Events\TaskUpdated($oTask));
+
+        return true;
     }
 }

@@ -7,40 +7,56 @@ use App\Models\Task;
 use App\Services\FileService;
 use Exception;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Laravel\Reverb\Loggers\Log;
 
 class TaskFileRepository
 {
     private Task $task;
-    private array $files;
-    private $fileService;
+    private array $files = [];
+    private FileService $fileService;
+    private FileRepository $fileRepository;
 
     public function __construct(Task $task)
     {
         $this->task = $task;
-        $this->files = $task->payload['files'] ?? [];
+        $this->files = $this->getFiles();
+        $this->fileRepository = new FileRepository();
         $this->fileService = new FileService($this->task->uuid);
+        $files = $this->getFiles();
 
-        foreach ($this->files as &$file) {
+        foreach ($files as &$file) {
             if (isset($file['result'])) {
                 $file['result'] = current($file['result']);
             }
         }
     }
 
-    public function getFileByHash(string $hash, $withPath = false)
+    public function getFiles(): array
     {
-        if (empty($this->files)) {
-            throw new FileNotFoundException("No files available in payload.");
+        $files = $this->task->files()->get()->toArray();
+        return !empty($files) ? array_column($files, null, 'hash') : [];
+    }
+
+    public function getUploadedFiles(): array
+    {
+        $files = $this->task
+            ->files()
+            ->where('status', '>=', FileUploadHelper::FILE_STATUS_UPLOADED)
+            ->get()
+            ->toArray();
+        return !empty($files) ? array_column($files, null, 'hash') : [];
+    }
+
+    public function getFileById(string $id, $withPath = false)
+    {
+        if (!isset($this->files[$id])) {
+            throw new FileNotFoundException("File with id {$id} not found.");
         }
 
-        $fileItem = current(array_filter($this->files, fn($file) => $file['hash'] === $hash));
-
-        if (!$fileItem) {
-            throw new FileNotFoundException("File with hash {$hash} not found.");
-        }
+        $fileItem = $this->files[$id];
 
         if ($withPath) {
-            $fileItem['fullPath'] = $this->fileService->getFileByHash($hash);
+            $fileItem['fullPath'] = $this->fileService->getFileByHash($id, true);
         }
 
         return $fileItem;
@@ -62,17 +78,25 @@ class TaskFileRepository
         return $fullPath;
     }
 
-    public function getFileResult(string $hash)
+    /**
+     * Получает результат файла по его ID.
+     *
+     * @param string $id ID файла.
+     * @throws Exception Если файл не завершён.
+     * @return array Ассоциативный массив с данными результата файла.
+     */
+    public function getFileResult(string $id)
     {
-        $file = $this->getFileByHash($hash);
+        $file = $this->getFileById($id);
 
         if (!$this->isFileCompleted($file)) {
             throw new Exception("File is not complete.");
         }
 
-        $file['result']['fullPath'] = $this->fileService->getFileResultByHash($hash, true);
+        $fileResult = current($file['result']);
+        $fileResult['fullPath'] = $this->fileService->getFileResultByHash($id, true);
 
-        return $file['result'];
+        return $fileResult;
     }
 
     public function getFileResultList(): array
@@ -88,10 +112,11 @@ class TaskFileRepository
                 if (!$this->isFileCompleted($file)) {
                     continue;
                 }
-
-                $file['result']['path'] = $this->fileService->getFileResultByHash($file['hash']);
-                $file['result']['fullPath'] = $this->fileService->getFileResultByHash($file['hash'], true);
-                $arFiles[] = $file['result'];
+                foreach ($file['result'] as $arFileResult) {
+                    $arFileResult['path'] = $this->fileService->getFileResultByHash($file['hash']);
+                    $arFileResult['fullPath'] = $this->fileService->getFileResultByHash($file['hash'], true);
+                    $arFiles[] = $arFileResult;
+                }
             }
             catch (Exception $e) {
                 continue;
@@ -103,7 +128,35 @@ class TaskFileRepository
 
     public function getPathForService($hash): string
     {
-        $file = $this->getFileByHash($hash);
-        return FileUploadHelper::getFilePathForService($this->task->uuid, $hash, $file->filename);
+        return $this->fileService->getFilePathForService($hash);
+    }
+
+    public function setFiles(array $dataFiles): void
+    {
+        foreach ($dataFiles as $fileData) {
+            if (!isset($this->files[$fileData['hash']])) {
+                continue;
+            }
+
+            $this->fileRepository->updateFile($fileData['hash'], $fileData);
+        }
+    }
+
+    public function updateFileStatus($hash, $status, $result = null): void
+    {
+        $data = [
+            'status' => $status,
+        ];
+
+        if ($result) {
+            $data['result'] = $result;
+        }
+
+        $this->fileRepository->updateFile($hash, $data);
+    }
+
+    public function deleteFileByHash($hash): void
+    {
+        $this->fileRepository->deleteFile($hash);
     }
 }

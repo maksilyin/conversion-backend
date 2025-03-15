@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->string('status')->default('created');
             $table->json('payload')->nullable();
+            $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });
     }

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Registry\TaskRegistry;
+use App\Services\TaskManager;
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 
 class TaskServiceProvider extends ServiceProvider
@@ -21,6 +23,11 @@ class TaskServiceProvider extends ServiceProvider
             }
 
             return $taskRegistry;
+        });
+        $this->app->bind(TaskManager::class, function ($app) {
+            $request = $app->make(Request::class);
+            $task = $request->route('task') ?? $request->input('task') ;
+            return new TaskManager(null, $task);
         });
     }
 
