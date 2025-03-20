@@ -21,11 +21,11 @@ Route::prefix('file')->group(function () {
     Route::delete('/delete/{task}/{hash}/', [FileUploadController::class, 'deleteFile'])
         ->middleware(CheckTask::class)
         ->name('file.delete');
-    Route::get('/download/{task}/all/', [FileUploadController::class, 'downloadZip'])
+    Route::get('/download/{task}/', [FileUploadController::class, 'downloadZip'])
         ->middleware(CheckTask::class);
     Route::get('/download/{task}/{hash}/', [FileUploadController::class, 'download'])
         ->middleware(CheckTask::class);
-    Route::get('/img/{task}/{filename}', [FileUploadController::class, 'showImg'])
+    Route::get('/img/{task}/{filename}/', [FileUploadController::class, 'showImg'])
         ->middleware(CheckTask::class);
 });
 

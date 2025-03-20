@@ -92,7 +92,11 @@ class Task extends Model
     {
         return [
             ...$this->payload,
-            'files' => $this->files()->where('status', '>=', FileUploadHelper::FILE_STATUS_UPLOADED)->get()
+            'files' => $this->files()
+            ->where(function ($query) {
+                $query->where('status', '>=', FileUploadHelper::FILE_STATUS_UPLOADED)
+                      ->orWhere('status', '=', FileUploadHelper::FILE_STATUS_ERROR);
+            })->get()
         ];
     }
 

@@ -50,7 +50,7 @@ class File extends Model
         });
 
         static::saved(function ($file) {
-            if ($file->status === FileUploadHelper::FILE_STATUS_PROCESSING || $file->status === FileUploadHelper::FILE_STATUS_COMPLETED) {
+            if ($file->status === FileUploadHelper::FILE_STATUS_PROCESSING || $file->status === FileUploadHelper::FILE_STATUS_COMPLETED || $file->status === FileUploadHelper::FILE_STATUS_ERROR) {
                 $file->broadcastTaskUpdate();
             }
         });

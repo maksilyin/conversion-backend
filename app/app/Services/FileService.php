@@ -50,11 +50,24 @@ class FileService
         $filePath = $this->mainDir . $hash . '_' . $filename;
         $chunks = collect($this->disk->files($tmpPath))->sort();
 
-        foreach ($chunks as $chunk) {
-            $this->disk->append($filePath, $this->disk->get($chunk));
+        $stream = fopen($this->disk->path($filePath), 'ab');
+
+        if (!$stream) {
+            throw new \Exception("Failed to open file for writing: $filePath");
         }
 
-        $this->deleteFolder($tmpPath);
+        try {
+            foreach ($chunks as $chunk) {
+                $chunkStream = fopen($this->disk->path($chunk), 'rb');
+                if ($chunkStream) {
+                    stream_copy_to_stream($chunkStream, $stream);
+                    fclose($chunkStream);
+                    $this->disk->delete($chunk);
+                }
+            }
+        } finally {
+            fclose($stream);
+        }
 
         return $filePath;
     }

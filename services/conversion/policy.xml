@@ -57,13 +57,14 @@
 -->
 <policymap>
   <!-- <policy domain="resource" name="temporary-path" value="/tmp"/> -->
-  <policy domain="resource" name="memory" value="256MiB"/>
-  <policy domain="resource" name="map" value="512MiB"/>
   <policy domain="resource" name="width" value="16KP"/>
   <policy domain="resource" name="height" value="16KP"/>
   <!-- <policy domain="resource" name="list-length" value="128"/> -->
-  <policy domain="resource" name="area" value="128MP"/>
-  <policy domain="resource" name="disk" value="1GiB"/>
+  <policy domain="resource" name="memory" value="2GiB"/>
+  <policy domain="resource" name="map" value="4GiB"/>
+  <policy domain="resource" name="area" value="512MP"/>
+  <policy domain="resource" name="disk" value="4GiB"/>
+  <policy domain="coder" rights="read|write" pattern="{GIF,JPEG,PNG,WEBP}" />
   <!-- <policy domain="resource" name="file" value="768"/> -->
   <!-- <policy domain="resource" name="thread" value="4"/> -->
   <!-- <policy domain="resource" name="throttle" value="0"/> -->
@@ -85,15 +86,15 @@
   <!-- <policy domain="delegate" rights="none" pattern="MVG" /> -->
   <!-- use curl -->
   <policy domain="delegate" rights="none" pattern="URL" />
-  <policy domain="delegate" rights="none" pattern="HTTPS" />
+  <policy domain="delegate" rights="read|write" pattern="HTTPS" />
   <policy domain="delegate" rights="none" pattern="HTTP" />
   <!-- in order to avoid to get image with password text -->
-  <policy domain="path" rights="none" pattern="@*"/>
+  <!-- <policy domain="path" rights="none" pattern="@*"/> -->
   <!-- disable ghostscript format types -->
   <policy domain="coder" rights="read|write" pattern="PS" />
   <policy domain="coder" rights="read|write" pattern="PS2" />
   <policy domain="coder" rights="read|write" pattern="PS3" />
   <policy domain="coder" rights="read|write" pattern="EPS" />
   <policy domain="coder" rights="read|write" pattern="PDF" />
-  <policy domain="coder" rights="none" pattern="XPS" />
+  <policy domain="coder" rights="read|write" pattern="XPS" />
 </policymap>
