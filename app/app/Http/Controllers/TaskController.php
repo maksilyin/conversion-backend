@@ -18,7 +18,7 @@ class TaskController extends Controller
     {
         $this->taskServiceFactory = $taskFactory;
     }
-    public function create(Request $request): string
+    public function store(Request $request): string
     {
         $request->validate([
             'type' => 'required|string',
@@ -41,6 +41,10 @@ class TaskController extends Controller
         $oTask->setAttribute('uuid', $taskId);
         $oTask->setAttribute('payload', $initPayload);
         $oTask->save();
+
+        $accessible = session()->get('accessible_tasks', []);
+        $accessible[] = $oTask->uuid;
+        session()->put('accessible_tasks', $accessible);
 
         return $oTask;
     }
@@ -81,11 +85,8 @@ class TaskController extends Controller
 
         $payload = $this->taskServiceFactory->createAdapter($taskType)->filter($payload, $taskManager);
 
-        \Illuminate\Support\Facades\Log::info('start setPayloadData');
         $taskManager->setPayloadData($payload);
-        \Illuminate\Support\Facades\Log::info('start setStatus');
         $taskManager->setStatus(Task::STATUS_PENDING);
-        \Illuminate\Support\Facades\Log::info('start save');
         $taskManager->save();
 
         ProcessTaskJob::dispatch($taskManager->getUuid());
@@ -93,7 +94,7 @@ class TaskController extends Controller
         return $taskManager->getUuid();
     }
 
-    public function get(string $task)
+    public function show(string $task, Request $request)
     {
         return Task::getForResult($task);
     }

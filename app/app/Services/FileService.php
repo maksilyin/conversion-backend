@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use finfo;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\File\File;
 
 class FileService
 {
@@ -150,8 +148,6 @@ class FileService
         if (!$filePath) {
             return null;
         }
-
-        Log::info($this->disk->path($filePath));
 
         if ($fullPath) {
             return $this->disk->path($filePath);

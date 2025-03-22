@@ -11,29 +11,34 @@ use App\Http\Middleware\CheckFile;
 use App\Http\Middleware\CheckFileType;
 use App\Http\Middleware\CheckTask;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TaskAccess;
 use App\Http\Middleware\ValidateTaskSize;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('file')->group(function () {
-    Route::post('/', [FileUploadController::class, 'create']);
-    Route::post('/upload/', [FileUploadController::class, 'uploadChunk'])
-        ->middleware([CheckTask::class, CheckFile::class, CheckFileType::class, ValidateTaskSize::class]);
-    Route::delete('/delete/{task}/{hash}/', [FileUploadController::class, 'deleteFile'])
-        ->middleware(CheckTask::class)
-        ->name('file.delete');
-    Route::get('/download/{task}/', [FileUploadController::class, 'downloadZip'])
-        ->middleware(CheckTask::class);
-    Route::get('/download/{task}/{hash}/', [FileUploadController::class, 'download'])
-        ->middleware(CheckTask::class);
-    Route::get('/img/{task}/{filename}/', [FileUploadController::class, 'showImg'])
-        ->middleware(CheckTask::class);
-});
+Route::prefix('file')
+    ->middleware([CheckTask::class, TaskAccess::class])
+    ->group(function () {
+        Route::post('/', [FileUploadController::class, 'create']);
+
+        Route::post('/upload/', [FileUploadController::class, 'uploadChunk'])
+            ->middleware([CheckFile::class, CheckFileType::class, ValidateTaskSize::class]);
+
+        Route::delete('/delete/{task}/{hash}/', [FileUploadController::class, 'deleteFile'])
+            ->name('file.delete');
+
+        Route::get('/download/{task}/', [FileUploadController::class, 'downloadZip']);
+        Route::get('/download/{task}/{hash}/', [FileUploadController::class, 'download']);
+        Route::get('/img/{task}/{filename}/', [FileUploadController::class, 'showImg']);
+    });
 
 Route::prefix('task')->group(function () {
-    Route::get('/{task}', [TaskController::class, 'get']);
-    Route::put('/', [TaskController::class, 'start']);
-    Route::post('/create/', [TaskController::class, 'create']);
-    Route::delete('/{task}/', [TaskController::class, 'clear']);
+    Route::post('/', [TaskController::class, 'store']);
+
+    Route::middleware(TaskAccess::class)->group(function () {
+        Route::put('/', [TaskController::class, 'start']);
+        Route::get('/{task}', [TaskController::class, 'show']);
+        Route::delete('/{task}/', [TaskController::class, 'clear']);
+    });
 });
 
 Route::get('/formats/', [FileFormatsController::class, 'formats'])->middleware(SetLocale::class);

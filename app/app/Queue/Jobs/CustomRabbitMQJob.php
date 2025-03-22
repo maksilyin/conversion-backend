@@ -2,7 +2,6 @@
 namespace App\Queue\Jobs;
 use App\Jobs\ProcessServiceResponseJob;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Support\Facades\Log;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob as BaseJob;
 use function Laravel\Prompts\error;
 
@@ -25,7 +24,7 @@ class CustomRabbitMQJob extends BaseJob
                     throw new \Exception("Key '{$key}' is missing in the payload. Service: " . $payload['service']);
                 }
             }
-            var_dump($payload['result']['extension']);
+
             $class = ProcessServiceResponseJob::class;
             $method = 'handle';
 

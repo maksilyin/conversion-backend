@@ -2,14 +2,11 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Task;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckTask
+class TaskAccess
 {
     /**
      * Handle an incoming request.
@@ -18,10 +15,11 @@ class CheckTask
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $taskId = $request->route('task') ?? $request->input('task') ;
+        $taskId = $request->route('task') ?? $request->input('task');
+        $accessible = $request->session()->get('accessible_tasks', []);
 
-        if (!$taskId || !Str::isUuid($taskId) || !Task::isExists($taskId)) {
-            return response()->json(['error' => 'Invalid or missing task UUID'], 400);
+        if (!in_array($taskId, $accessible)) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         return $next($request);
