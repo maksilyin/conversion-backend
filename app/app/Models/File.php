@@ -24,7 +24,7 @@ class File extends Model
     protected $hidden = ['id', 'task_id', 'created_at', 'updated_at', 'deleted_at'];
 
     protected $fillable = [
-        'id', 'task_id', 'status', 'filename', 'size', 'extension', 'mimetype', 'params', 'result'
+        'id', 'task_id', 'status', 'filename', 'size', 'extension', 'mimetype', 'params', 'index', 'result'
     ];
 
     //protected $touches = ['task'];

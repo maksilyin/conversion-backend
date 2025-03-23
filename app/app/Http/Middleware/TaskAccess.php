@@ -17,7 +17,6 @@ class TaskAccess
     public function handle(Request $request, Closure $next): Response
     {
         $taskId = $request->route('task') ?? $request->input('task');
-        Log::info('TaskAccess', [$taskId]);
         $accessible = $request->session()->get('accessible_tasks', []);
 
         if (app()->environment('production') && !in_array($taskId, $accessible)) {

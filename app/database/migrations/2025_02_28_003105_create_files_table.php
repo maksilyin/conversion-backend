@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('mimetype')->nullable();
             $table->json('params')->nullable();
             $table->json('result')->nullable();
+            $table->integer('index')->default(0);
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });

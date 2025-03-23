@@ -93,10 +93,12 @@ class Task extends Model
         return [
             ...$this->payload,
             'files' => $this->files()
-            ->where(function ($query) {
-                $query->where('status', '>=', FileUploadHelper::FILE_STATUS_UPLOADED)
-                      ->orWhere('status', '=', FileUploadHelper::FILE_STATUS_ERROR);
-            })->get()
+                ->where(function ($query) {
+                    $query->where('status', '>=', FileUploadHelper::FILE_STATUS_UPLOADED)
+                          ->orWhere('status', '=', FileUploadHelper::FILE_STATUS_ERROR);
+                })
+                ->orderBy('index')
+                ->get()
         ];
     }
 

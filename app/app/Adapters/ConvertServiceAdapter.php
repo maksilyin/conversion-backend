@@ -19,6 +19,7 @@ class ConvertServiceAdapter implements ServiceAdapterContract
 
         return [
             'hash' => $hash,
+            'index' => intval($payload['index']),
             'status' => FileUploadHelper::FILE_STATUS_CREATED,
             'filename' => $payload['filename'],
             'extension' => pathinfo($payload['filename'], PATHINFO_EXTENSION),

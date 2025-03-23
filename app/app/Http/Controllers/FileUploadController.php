@@ -34,9 +34,11 @@ class FileUploadController extends Controller
 
         $filename = $request->input('filename');
         $size = $request->input('size');
+        $index = $request->input('index');
 
         $file = File::create([
             'task_id' => $taskManager->getId(),
+            'index' => intval($index),
             'filename' => $filename,
             'size' => $size,
             'extension' => pathinfo($filename, PATHINFO_EXTENSION),

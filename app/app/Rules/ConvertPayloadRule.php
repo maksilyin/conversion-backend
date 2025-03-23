@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Helpers\FileUploadHelper;
 use App\Models\FileFormat;
 use App\Models\Task;
 use App\Services\TaskManager;
@@ -88,7 +89,7 @@ class ConvertPayloadRule implements ValidationRule
         $files = $this->taskManager->getUploadedFiles();
 
         foreach ($files as $file) {
-            if (!isset($valueFiles[$file['hash']])) {
+            if ($file['status'] !== FileUploadHelper::FILE_STATUS_COMPLETED && !isset($valueFiles[$file['hash']])) {
                 $fail("File with hash {$file['hash']} was not found in the provided data.");
                 return;
             }
