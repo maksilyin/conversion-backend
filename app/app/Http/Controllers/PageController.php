@@ -19,13 +19,16 @@ class PageController extends Controller
 
         $url = $request->input('url');
 
-        $page = Page::where('url', $url, 'active', 1)
-            ->with([
-                'translations',
-                'seo',
-            ])
-            ->firstOrFail();
-        return PageResource::make($page)->toArray(request());
+        if ($url) {
+            $page = Page::where('url', $url, 'active', 1)
+                ->with([
+                    'translations',
+                    'seo',
+                ])
+                ->firstOrFail();
+            return PageResource::make($page)->toArray(request());
+        }
+        return '';
     }
 
     /**
