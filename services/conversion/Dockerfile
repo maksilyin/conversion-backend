@@ -5,7 +5,6 @@ WORKDIR /app
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
     echo "deb http://deb.debian.org/debian bookworm main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://security.debian.org/debian-security bookworm-security main contrib non-free" >> /etc/apt/sources.list && \
     echo "deb http://deb.debian.org/debian bookworm-updates main contrib non-free" >> /etc/apt/sources.list && \
     echo "deb http://deb.debian.org/debian buster main contrib non-free" >> /etc/apt/sources.list && \
     apt-get update
