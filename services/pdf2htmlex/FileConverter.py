@@ -20,11 +20,16 @@ class FileConverter:
             return self._output_path
 
     def convert(self):
+        print("Input PDF exists:", os.path.exists(self._file_path), flush=True)
+        print("Input PDF path:", self._file_path, flush=True)
         output_path = self._get_output_path()
+        print("output_path:", output_path, flush=True)
         command = [
             "pdf2htmlEX",
             "--decompose-ligature",
             "1",
+            "--process-outline", 
+            "0",
             #"--embed",
             #"cfij",
             "--css-filename",
@@ -37,6 +42,14 @@ class FileConverter:
         ]
         try:
             subprocess.check_call(command)
+            
+            print("subprocess", {
+                "status": True,
+                "filename": os.path.basename(output_path),
+                "output": output_path,
+                "error": None,
+                "extension": self._output_format,
+            }, flush=True)
 
             return {
                 "status": True,
@@ -46,6 +59,7 @@ class FileConverter:
                 "extension": self._output_format,
             }
         except Exception as e:
+            print("error", e, flush=True)
             return self.get_error("Error conversion {} to {}: {}".format(self._file_path, self._output_format, str(e)))
 
     def get_error(self, message):

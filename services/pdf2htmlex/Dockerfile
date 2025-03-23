@@ -33,6 +33,9 @@ RUN curl -LO https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz && \
     cd .. && \
     rm -rf libiconv-1.16 libiconv-1.16.tar.gz
 
+RUN sed -i 's/^xfs:x:33:/www-data:x:33:/' /etc/group && \
+    sed -i 's/^xfs:x:33:33:/www-data:x:33:33:/' /etc/passwd
+
 # Копируем архив pdf2htmlEX
 COPY pdf2htmlEX-0.18.8.rc1-master-20200630-alpine-3.12.0-x86_64.tar.gz /tmp/pdf2htmlEX.tar.gz
 
@@ -48,6 +51,8 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Копируем файлы приложения
 COPY . .
+
+USER www-data
 
 # Указываем команду по умолчанию
 CMD ["python3", "index.py"]

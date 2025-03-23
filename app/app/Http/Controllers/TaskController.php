@@ -99,9 +99,8 @@ class TaskController extends Controller
         return Task::getForResult($task);
     }
 
-    public function clear(Task $task): true
+    public function clear(TaskManager $taskManager, string $task): true
     {
-        $taskManager = new TaskManager($task);
         $taskManager->clearTask();
 
         return true;

@@ -78,6 +78,7 @@ RUN apt-get install -y \
     gnumeric \
     wkhtmltopdf \
     pandoc \
+    passwd \
     unar && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -150,5 +151,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY policy.xml /etc/ImageMagick-6/policy.xml
 
 COPY . .
+USER www-data
 
 CMD ["python", "index.py"]
