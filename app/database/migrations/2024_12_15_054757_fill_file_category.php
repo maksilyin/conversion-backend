@@ -25,6 +25,10 @@ return new class extends Migration
             'slug' => 'video',
         ],
         [
+            'name' => 'E-book',
+            'slug' => 'ebook',
+        ],
+        [
             'name' => 'Archive',
             'slug' => 'archive',
         ],

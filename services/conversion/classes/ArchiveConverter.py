@@ -24,6 +24,11 @@ class ArchiveConverter(ConverterBase, ABC):
         if (file_path.endswith(".bz2") or file_path.endswith(".xz")) and output_path.endswith(f".tar.{self._output_format}"):
             output_path = output_path.replace(".tar.", ".")
 
+        if (self._output_format == "bz2"):
+            base, _ = os.path.splitext(output_path)
+            output_path = base + '.tar.bz2'
+
+
         self._create_tmp_dir()
         try:
             try:
@@ -39,7 +44,7 @@ class ArchiveConverter(ConverterBase, ABC):
         finally:
             if is_rename_tar:
                 os.rename(file_path, self._file_path)
-            self._delete_tmp_dir()
+            #self._delete_tmp_dir()
 
         return output_path
 

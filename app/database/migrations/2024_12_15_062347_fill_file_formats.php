@@ -156,7 +156,18 @@ return new class extends Migration
         ['name' => 'Basic Audio', 'extension' => 'au', 'extended_name' => 'Basic Audio Format', 'mime_type' => 'audio/basic', 'color' => '#9E9E9E', 'category' => 'audio'],
         ['name' => 'CAF', 'extension' => 'caf', 'extended_name' => 'Core Audio Format', 'mime_type' => 'audio/x-caf', 'color' => '#F44336', 'category' => 'audio'],
         ['name' => 'DLNA/ADTS', 'extension' => 'adts', 'extended_name' => 'DLNA/ADTS Audio', 'mime_type' => 'audio/vnd.dlna.adts', 'color' => '#4CAF50', 'category' => 'audio'],
-        ['name' => 'WAVE', 'extension' => 'wav', 'extended_name' => 'Waveform Audio File Format', 'mime_type' => 'audio/vnd.wave', 'color' => '#2196F3', 'category' => 'audio']
+        ['name' => 'WAVE', 'extension' => 'wav', 'extended_name' => 'Waveform Audio File Format', 'mime_type' => 'audio/vnd.wave', 'color' => '#2196F3', 'category' => 'audio'],
+
+        ['name' => 'EPUB', 'extension' => 'epub', 'extended_name' => 'Electronic Publication', 'mime_type' => 'application/epub+zip', 'color' => '#4CAF50', 'category' => 'ebook'],
+        ['name' => 'MOBI', 'extension' => 'mobi', 'extended_name' => 'Mobipocket', 'mime_type' => 'application/x-mobipocket-ebook', 'color' => '#FF9800', 'category' => 'ebook'],
+        ['name' => 'AZW', 'extension' => 'azw', 'extended_name' => 'Amazon Kindle', 'mime_type' => 'application/vnd.amazon.ebook', 'color' => '#9C27B0', 'category' => 'ebook'],
+        ['name' => 'AZW3', 'extension' => 'azw3', 'extended_name' => 'Amazon Kindle (KF8)', 'mime_type' => 'application/vnd.amazon.ebook', 'color' => '#673AB7', 'category' => 'ebook'],
+        ['name' => 'FB2', 'extension' => 'fb2', 'extended_name' => 'FictionBook', 'mime_type' => 'application/x-fictionbook+xml', 'color' => '#03A9F4', 'category' => 'ebook'],
+        ['name' => 'PDF', 'extension' => 'pdf', 'extended_name' => 'Portable Document Format', 'mime_type' => 'application/pdf', 'color' => '#F44336', 'category' => 'ebook'],
+        ['name' => 'TXT', 'extension' => 'txt', 'extended_name' => 'Plain Text', 'mime_type' => 'text/plain', 'color' => '#795548', 'category' => 'ebook'],
+        ['name' => 'DJVU', 'extension' => 'djvu', 'extended_name' => 'DjVu', 'mime_type' => 'image/vnd.djvu', 'color' => '#E91E63', 'category' => 'ebook'],
+        ['name' => 'LIT', 'extension' => 'lit', 'extended_name' => 'Microsoft Reader', 'mime_type' => 'application/x-ms-reader', 'color' => '#00BCD4', 'category' => 'ebook'],
+        ['name' => 'PDB', 'extension' => 'pdb', 'extended_name' => 'Palm Database', 'mime_type' => 'application/vnd.palm', 'color' => '#8BC34A', 'category' => 'ebook']
     ];
     /**
      * Run the migrations.
