@@ -20,7 +20,8 @@ class PageController extends Controller
         $url = $request->input('url');
 
         if ($url) {
-            $page = Page::where('url', $url, 'active', 1)
+            $page = Page::where('url', $url)
+                ->where('active', 1)
                 ->with([
                     'translations',
                     'seo',
