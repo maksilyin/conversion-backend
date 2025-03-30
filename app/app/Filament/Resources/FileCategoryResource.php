@@ -85,12 +85,18 @@ class FileCategoryResource extends Resource
                             ]),
                         Tabs\Tab::make('Translations')
                             ->schema([
+                                Textarea::make('import_translations')
+                                    ->label('Импорт переводов (JSON)')
+                                    ->columnSpanFull()
+                                    ->rows(10)
+                                    ->dehydrated(false)
+                                    ->live(),
                                 Repeater::make('translations')
                                     ->relationship('translations')
                                     ->schema([
                                         Select::make('locale')
                                             ->label('Language')
-                                            ->options(Language::all()->pluck('name', 'code')->toArray())
+                                            ->options(Language::all()->pluck('code', 'code')->toArray())
                                             ->required()
                                             ->default('ru'),
                                         TextInput::make('name')->label('Name'),
