@@ -20,6 +20,7 @@ class FileCategoryResource extends JsonResource
             'slug' => $this->slug,
             'icon' => $this->icon,
             'icon_image' => $this->icon_image,
+            'excerpt' => $this->getTranslate('excerpt'),
             'description' => $this->getTranslate('description'),
             'formats' => $this->formats->map(function ($format) {
                 return [
