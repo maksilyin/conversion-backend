@@ -19,9 +19,9 @@ trait HasSEO
         }
 
         return [
-            'title' => $this->metaTagsCache->meta_title,
-            'description' => $this->metaTagsCache->meta_description,
-            'keywords' => $this->metaTagsCache->meta_keywords,
+            'title' => $this->metaTagsCache ? $this->metaTagsCache->meta_title : null,
+            'description' => $this->metaTagsCache ? $this->metaTagsCache->meta_description : null,
+            'keywords' => $this->metaTagsCache ? $this->metaTagsCache->meta_keywords : null,
         ];
     }
 
