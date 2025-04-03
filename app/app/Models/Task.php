@@ -106,6 +106,12 @@ class Task extends Model
     {
         parent::boot();
 
+        static::creating(function (Task $task) {
+            $task->setAttribute('ip', request()->header('X-Forwarded-For')
+                ? explode(',', request()->header('X-Forwarded-For'))[0]
+                : request()->ip());
+        });
+
         static::deleting(function ($task) {
             $fileService = new FileService($task->uuid);
             $fileService->deleteTaskFolder();
