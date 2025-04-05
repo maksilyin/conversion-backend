@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\FileUploadException;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,10 +15,12 @@ class CheckFileType
         'application/x-sh',
         'application/javascript',
     ];
+
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
+     * @throws FileUploadException
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -32,7 +35,7 @@ class CheckFileType
             $mimeType = $finfo->buffer($chunk);
 
             if (in_array($mimeType, $this->forbiddenMimeTypes)) {
-                return response()->json(['error' => 'Uploading this file type is not allowed'], 400);
+                throw new FileUploadException('Uploading this file type is not allowed', 400);
             }
         }
 

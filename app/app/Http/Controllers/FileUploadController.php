@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\FileUploadException;
 use App\Helpers\FileUploadHelper;
 use App\Models\File;
-use App\Models\Task;
 use App\Repositories\FileRepository;
+use App\Services\FileScannerService;
 use App\Services\FileService;
 use App\Services\TaskManager;
 use Exception;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +21,10 @@ class FileUploadController extends Controller
     {
         $this->fileService = new FileService();
     }
+
+    /**
+     * @throws FileUploadException
+     */
     public function create(TaskManager $taskManager, Request $request)
     {
         $request->validate([
@@ -29,7 +33,7 @@ class FileUploadController extends Controller
         ]);
 
         if (!$taskManager->isCanLoadFile()) {
-            abort(422, 'Files cannot be uploaded while the task is in its current state.');
+            throw new FileUploadException('Files cannot be uploaded while the task is in its current state', 422);
         }
 
         $filename = $request->input('filename');
@@ -46,6 +50,10 @@ class FileUploadController extends Controller
 
         return $file->id;
     }
+
+    /**
+     * @throws FileUploadException
+     */
     public function uploadChunk(Request $request): JsonResponse
     {
         $request->validate([
@@ -72,9 +80,14 @@ class FileUploadController extends Controller
 
         if ($chunkIndex === $total) {
             $outputFile = $this->fileService->mergeChunks($fileIdentifier, $filename);
+            $fileRepository = new FileRepository();
+
+            if (!(new FileScannerService())->scan($this->fileService->getFullPath($outputFile))) {
+                throw new FileUploadException('The uploaded file contains malicious content and has been removed', 422, $fileIdentifier);
+            }
+
             $fileInfo = $this->fileService->getFileInfo($outputFile);
 
-            $fileRepository = new FileRepository();
             $fileRepository->updateFile($fileIdentifier, [
                 'status' => FileUploadHelper::FILE_STATUS_UPLOADED,
                 'mimetype' => $fileInfo['mimetype'],

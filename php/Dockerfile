@@ -8,9 +8,10 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     cron \
     supervisor \
-    && docker-php-ext-install pdo pdo_mysql intl zip
-RUN docker-php-ext-install pcntl
-RUN docker-php-ext-install sockets
+    clamav \
+    clamav-daemon \
+    && docker-php-ext-install pdo pdo_mysql intl zip pcntl sockets \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN echo "upload_max_filesize=100M" > /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size=120M" >> /usr/local/etc/php/conf.d/uploads.ini

@@ -12,6 +12,7 @@ use App\Http\Middleware\CheckFileType;
 use App\Http\Middleware\CheckTask;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TaskAccess;
+use App\Http\Middleware\TaskAccessIP;
 use App\Http\Middleware\ValidateTaskSize;
 use Illuminate\Support\Facades\Route;
 
@@ -36,7 +37,9 @@ Route::prefix('task')->group(function () {
 
     Route::middleware(TaskAccess::class)->group(function () {
         Route::put('/', [TaskController::class, 'start']);
-        Route::get('/{task}', [TaskController::class, 'show']);
+        Route::get('/{task}', [TaskController::class, 'show'])
+            ->middleware(TaskAccessIP::class);
+
         Route::delete('/{task}/', [TaskController::class, 'clear']);
     });
 });

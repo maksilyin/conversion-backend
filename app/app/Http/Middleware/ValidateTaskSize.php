@@ -31,7 +31,7 @@ class ValidateTaskSize
         // Если общий размер загруженных файлов превышает лимит
         if ($newUploadedSize > $maxTaskSize) {
             return response()->json([
-                'error' => 'Total uploaded size exceeds the allowed limit',
+                'message' => 'Total uploaded size exceeds the allowed limit',
                 'limit' => $maxTaskSize,
                 'usedLimit' => $newUploadedSize,
                 'chunkSize' => $chunk->getSize(),

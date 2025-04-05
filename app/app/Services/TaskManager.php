@@ -72,6 +72,11 @@ class TaskManager
         return $this->task;
     }
 
+    public function isIP($ip): bool
+    {
+        return $this->task->ip === $ip;
+    }
+
     public function getPayload(): array
     {
         return $this->task->payload;

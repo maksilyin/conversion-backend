@@ -163,4 +163,9 @@ class FileService
 
         return $filePath ? $this->serviceDir . pathinfo($filePath, PATHINFO_BASENAME) : null;
     }
+
+    public function getFullPath($path): string
+    {
+        return $this->disk->path($path);
+    }
 }

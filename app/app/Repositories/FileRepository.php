@@ -2,6 +2,7 @@
 namespace App\Repositories;
 
 use App\Models\File;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class FileRepository
@@ -10,6 +11,16 @@ class FileRepository
     {
         $file = File::find($id);
 
+        if ($file) {
+            $this->prepareResult($file, $data);
+            $file->update($data);
+        }
+
+        return $file;
+    }
+
+    private function prepareResult($file, &$data)
+    {
         if (!empty($data['result'])) {
             $result = $file->result;
             if (!is_array($result)) {
@@ -18,10 +29,6 @@ class FileRepository
             $result[] = $data['result'];
             $data['result'] = $result;
         }
-
-        $file->update($data);
-
-        return $file;
     }
 
     public function deleteFile($id): void
@@ -35,5 +42,18 @@ class FileRepository
         $file->update($data);
 
         return $file;
+    }
+
+    public function updateAndDeleteFile($id, array $data): void
+    {
+        DB::transaction(function () use ($id, $data) {
+            $file = File::find($id);
+
+            if ($file) {
+                $this->prepareResult($file, $data);
+                $file->update($data);
+                $file->delete();
+            }
+        });
     }
 }

@@ -108,7 +108,7 @@ class Task extends Model
 
         static::creating(function (Task $task) {
             $task->setAttribute('ip', request()->header('X-Forwarded-For')
-                ? explode(',', request()->header('X-Forwarded-For'))[0]
+                ? trim(explode(',', request()->header('X-Forwarded-For'))[0])
                 : request()->ip());
         });
 
