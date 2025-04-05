@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Exceptions\FileUploadException;
@@ -113,14 +112,20 @@ class FileUploadController extends Controller
     {
         $this->fileService->setUuid($task);
         $file = $taskManager->getFileResult($hash);
-        $fileContent = file_get_contents($file['fullPath']);
         $mimeType = $file['mimetype'];
         $fileName = $file['originalName'];
 
-        return response($fileContent, 200, [
+        return response()->streamDownload(function () use ($file) {
+            $stream = fopen($file['fullPath'], 'rb');
+            while (!feof($stream)) {
+                echo fread($stream, 8192);
+                flush();
+            }
+            fclose($stream);
+        }, $fileName, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => "attachment; filename=\"$fileName\"",
-            'Content-Length' => strlen($fileContent),
+            'Content-Length' => @filesize($file['fullPath']),
         ]);
     }
 

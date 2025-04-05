@@ -25,6 +25,7 @@ class CheckFileType
     public function handle(Request $request, Closure $next): Response
     {
         $chunkIndex = $request->input('index');
+        $hash = $request->input('hash');
 
         if ($request->hasFile('file') && $chunkIndex == 1) {
             $file = $request->file('file');
@@ -35,7 +36,7 @@ class CheckFileType
             $mimeType = $finfo->buffer($chunk);
 
             if (in_array($mimeType, $this->forbiddenMimeTypes)) {
-                throw new FileUploadException('Uploading this file type is not allowed', 400);
+                throw new FileUploadException('Uploading this file type is not allowed', 400, $hash);
             }
         }
 

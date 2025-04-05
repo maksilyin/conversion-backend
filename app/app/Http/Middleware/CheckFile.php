@@ -22,7 +22,7 @@ class CheckFile
         $hash = $request->input('hash');
 
         if (!$hash || !Str::isUuid($hash) || !File::isExists($hash)) {
-            throw new FileUploadException('Invalid or missing file id', 400);
+            throw new FileUploadException('Invalid or missing file id', 400, $hash);
         }
 
         return $next($request);

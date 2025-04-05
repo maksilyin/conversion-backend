@@ -23,7 +23,7 @@ class Task extends Model
     use BroadcastsEvents, HasFactory, SoftDeletes;
 
     protected $fillable = ['uuid', 'user_id', 'type', 'status', 'payload'];
-    protected $hidden = ['created_at', 'updated_at', 'user_id', 'deleted_at'];
+    protected $hidden = ['created_at', 'updated_at', 'user_id', 'deleted_at', 'ip'];
 
     protected $disableBroadcastOnRout = [
         'file.delete'
