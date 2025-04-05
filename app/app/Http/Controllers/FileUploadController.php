@@ -118,7 +118,7 @@ class FileUploadController extends Controller
         return response()->streamDownload(function () use ($file) {
             $stream = fopen($file['fullPath'], 'rb');
             while (!feof($stream)) {
-                echo fread($stream, 8192);
+                echo fread($stream, 1048576);
                 flush();
             }
             fclose($stream);
@@ -156,7 +156,21 @@ class FileUploadController extends Controller
 
         $zipPath = $this->createZip($task, $files);
 
-        return Response::download($zipPath)->deleteFileAfterSend(true);
+        $fileName = basename($zipPath);
+
+        return response()->streamDownload(function () use ($zipPath) {
+            $stream = fopen($zipPath, 'rb');
+            while (!feof($stream)) {
+                echo fread($stream, 1048576);
+                flush();
+            }
+            fclose($stream);
+            @unlink($zipPath);
+        }, $fileName, [
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => "attachment; filename=\"$fileName\"",
+            'Content-Length' => filesize($zipPath),
+        ]);
     }
 
     protected function createZip(string $uuid, array $files): string
