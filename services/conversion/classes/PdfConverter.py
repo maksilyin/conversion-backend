@@ -61,7 +61,13 @@ class PdfConverter(ConverterBase, ABC):
         tmp_file = self._create_tmp_dir(build_path=f"{tmp_file}.{self._output_format}")
         try:
             subprocess.run([
-                "convert", file_path, tmp_file
+                "convert",
+                "-density", "300",
+                "-background", "white",
+                "-alpha", "remove",
+                "-alpha", "off",
+                file_path,
+                tmp_file
             ], check=True)
 
             output_path = Path(output_path).with_suffix(".zip")

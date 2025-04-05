@@ -59,7 +59,9 @@ class ConverterBase(ABC):
             shutil.rmtree(self._tmp_path)
 
     def _create_tmp_dir(self, build_path=None):
-        self._tmp_path = tempfile.mkdtemp(dir="/app/storage/tmp")
+        tmp_root = "/app/storage/tmp"
+        os.makedirs(tmp_root, exist_ok=True)
+        self._tmp_path = tempfile.mkdtemp(dir=tmp_root)
         self._tmp_created = True
 
         if build_path is not None:
